@@ -14,39 +14,6 @@ from config import Config as config
 ont_hot = {'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'+':10,'-':11,'=':12,'×':13,'÷':14,'(':15,')':16}
 
 
-# def get_imges_labels(images_path):
-#     batch_size = len(images_path)
-#     label_list = []
-#     image_list = []
-#     max_wide = 0
-#     images_wide = []
-#     label_len = []
-#
-#     for path in images_path:
-#         label = path.split('_')[2].replace('.jpg', '')
-#         label = label.replace('.png', '')
-#         label_list.append(label)
-#         label_len.append(len(label))
-#         image = cv2.imread(path)
-#         image = self.image_normal(image)
-#         images_wide.append(image.shape[1])
-#         image_list.append(image)
-#         if image.shape[1] > max_wide:
-#             max_wide = image.shape[1]
-#
-#     images = np.zeros([batch_size, config.IMAGE_HEIGHT, max_wide])
-#
-#     for i, image in enumerate(image_list):
-#         images[i, :, 0:image.shape[1]] = image
-#     images = images[..., np.newaxis]
-#
-#     labels = self.list_to_sparse(label_list),
-#     wides = np.array(images_wide, dtype=np.int32)
-#     label_len = np.array(label_len, dtype=np.int32)
-#
-#     return images, labels[0], wides, label_len
-
-
 class DataSet(object):
     def __init__(self,noise_able = False):
         clean_data = glob(os.path.join(config.CLEAN_DATA,'*'))
@@ -146,25 +113,25 @@ class DataSet(object):
         labels,length = self.get_labels(val_data)
         return images, labels, wides, length
 
-def fuck():
-    val_data = glob(os.path.join(config.VAL_DATA, '*'))
-    for path in val_data:
-        img = cv2.imread(path)
-        cut = 0
-        for i in range(300):
-            if img[i,0,0]==255:
-                cut = i
-                break
-        img = img[0:cut,:,:]
-        cv2.imwrite(path.replace('test_data','test_data2'),img)
-        print("a")
-
-def test():
-    val_data = glob(os.path.join(config.VAL_DATA, '*'))
-    for path in val_data:
-        image = cv2.imread(path)
-        image = cv2.resize(image, (int(image.shape[1] / image.shape[0] * 32), 32))
-        cv2.imwrite(path.replace('test_data','see'),image)
+# def fuck():
+#     val_data = glob(os.path.join(config.VAL_DATA, '*'))
+#     for path in val_data:
+#         img = cv2.imread(path)
+#         cut = 0
+#         for i in range(300):
+#             if img[i,0,0]==255:
+#                 cut = i
+#                 break
+#         img = img[0:cut,:,:]
+#         cv2.imwrite(path.replace('test_data','test_data2'),img)
+#         print("a")
+#
+# def test():
+#     val_data = glob(os.path.join(config.VAL_DATA, '*'))
+#     for path in val_data:
+#         image = cv2.imread(path)
+#         image = cv2.resize(image, (int(image.shape[1] / image.shape[0] * 32), 32))
+#         cv2.imwrite(path.replace('test_data','see'),image)
 
 
 

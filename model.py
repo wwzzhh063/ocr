@@ -7,7 +7,6 @@ import cv2
 import numpy as np
 from glob import glob
 import os
-from densenet import densenet
 from tensorflow.python.layers.core import Dense
 from tensorflow.contrib.seq2seq import ScheduledEmbeddingTrainingHelper
 from utils import DataSet
@@ -103,9 +102,6 @@ class CTC_Model():
         features, sequence_length = self.base_conv_layer(inputs, width,is_training)
         logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT))
         return logits ,sequence_length
-
-    def crnn_without_lstm(self,inputs, width,is_training):
-        features, sequence_length = self.base_conv_layer(inputs, width, is_training)
 
 
 
@@ -317,9 +313,9 @@ class CTC_Model():
 
 
 model = CTC_Model()
-# model.train()
+model.train()
 # model.output('/home/wzh/1_4+6=78.png')
-model.analyze_result('/home/wzh/analyze')
+# model.analyze_result('/home/wzh/analyze')
 
 
 
