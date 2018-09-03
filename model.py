@@ -101,8 +101,11 @@ class CTC_Model():
 
     def crnn(self,inputs, width,is_training):
         features, sequence_length = self.base_conv_layer(inputs, width,is_training)
-        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT)+1)
+        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT))
         return logits ,sequence_length
+
+    def crnn_without_lstm(self,inputs, width,is_training):
+        features, sequence_length = self.base_conv_layer(inputs, width, is_training)
 
 
 
@@ -214,20 +217,21 @@ class CTC_Model():
         image,  wides = DataSet().get_imges([path])
         inputs = tf.placeholder(tf.float32, [None, 32, None, 1])
         width = tf.placeholder(tf.int32, [None])
-        logits, sequence_length = self.crnn(inputs, width,False)
+        is_training = tf.placeholder(tf.bool)
+        logits, sequence_length = self.crnn(inputs, width,is_training)
 
         decoder, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
         decoder = decoder[0]
 
         dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
-                                           sparse_values=decoder.values, )
+                                           sparse_values=decoder.values,default_value = -1)
 
         with tf.Session() as sess:
 
             saver = tf.train.Saver(tf.global_variables())
             saver.restore(sess,config.MODEL_SAVE)
 
-            sentence =sess.run(dense_decoder,feed_dict={inputs:image,width:wides})
+            sentence =sess.run(dense_decoder,feed_dict={inputs:image,width:wides,is_training:False})
 
             sentence = sentence.tolist()
 
@@ -239,13 +243,83 @@ class CTC_Model():
         print(result)
 
 
+    def analyze_result(self,paths):
+        image_paths = sorted(glob(os.path.join(paths,'*')))
+        image, wides = DataSet().get_imges(image_paths)
+        def getlab(x):
+            result = x.split('_')[-1].replace('.jpg','')
+            result = result.replace('.png','')
+            return result
+
+        labels = map(getlab,image_paths)
+
+        inputs = tf.placeholder(tf.float32, [None, 32, None, 1])
+        width = tf.placeholder(tf.int32, [None])
+        is_training = tf.placeholder(tf.bool)
+        logits, sequence_length = self.crnn(inputs, width, is_training)
+
+        decoder, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
+        decoder = decoder[0]
+
+        dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
+                                           sparse_values=decoder.values,default_value = -1)
+        with tf.Session() as sess:
+            saver = tf.train.Saver(tf.global_variables())
+            saver.restore(sess, config.MODEL_SAVE)
+
+            result = []
+
+            if image.shape[0] <= config.BATCH_SIZE:
+                sentence = sess.run(dense_decoder, feed_dict={inputs: image, width: wides,is_training:False})
+
+                sentence = sentence.tolist()
+
+                decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
+
+                result.extend(sentence)
+
+            else:
+                index = 0
+                while (index+1)*config.BATCH_SIZE <= image.shape[0]:
+                    if (index+1)*config.BATCH_SIZE > image.shape[0]:
+                        end = image.shape[0]
+                    else:
+                        end = (index+1)*config.BATCH_SIZE
+
+                    sentence = sess.run(dense_decoder, feed_dict={inputs: image[index*config.BATCH_SIZE:end,...], width: wides[index*config.BATCH_SIZE:end,...],is_training:True})
+
+                    sentence = sentence.tolist()
+
+                    decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
+
+                    result.extend(sentence)
+                    index = index+1
+
+
+            result = list(map(lambda y: ''.join(list(map(lambda x:decode.get(x), y))), result))
+
+            result = dict(zip(labels,result))
+
+
+
+        print(result)
+
+
+
+
+
+
+
+
+
 
 
 
 
 model = CTC_Model()
 # model.train()
-model.output('/home/wzh/1_4+6=78.png')
+# model.output('/home/wzh/1_4+6=78.png')
+model.analyze_result('/home/wzh/analyze')
 
 
 

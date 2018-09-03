@@ -7,6 +7,7 @@ import random
 from PIL import Image,ImageDraw,ImageFont
 from tqdm import *
 import skimage
+from captcha.image import ImageCaptcha
 
 path = sorted(glob(os.path.join(Config.MNIST_PATH,'*')))
 
@@ -36,7 +37,11 @@ def create_data(length,ttfont,head_size,color,background_path):
     step_size = ttfont.getsize('txt')[0]*0.5
 
     for i in range(length):
-        num  = random.randint(0,99)
+        num  = random.randint(0,1)
+        if num == 0:
+            num = random.randint(0,9)
+        else:
+            num = random.randint(10,99)
         num_list = list(str(num))
         if i == length-1:
             sign = ['=']
@@ -84,6 +89,12 @@ def create_data(length,ttfont,head_size,color,background_path):
     # #
     # image = image+background
 
+    generator = ImageCaptcha(width=400, height=80)
+
+    if random.randint(0,2) == 1:
+        background = generator.generate_image(''.join(label))
+        background = np.asarray(background, np.uint8)
+
 
     return background,label
 
@@ -96,8 +107,10 @@ def create_dataset(noise=True):
     if not os.path.exists(path):
         os.mkdir(path)
 
-    font_list = glob(os.path.join(Config.FONT_DATA,'*'))
-    for i in tqdm(range(50000)):
+    font_list = glob(os.path.join(Config.FONT_DATA,'*.ttf'))
+    font_list.extend(glob(os.path.join(Config.FONT_DATA,'*.TTF')))
+
+    for i in tqdm(range(500)):
         if noise:
             background_path = random.sample(['./background.png', './background_noise.png', 'random'], 1)[0]
         size = random.sample(size_list,1)[0]
