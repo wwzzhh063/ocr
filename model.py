@@ -42,7 +42,13 @@ class CTC_Model():
                 conv8 = slim.conv2d(conv7,512,scope='conv8')
                 pool4 = slim.max_pool2d(conv8,kernel_size=[3,1],stride=[3,1],scope='pool4')
 
-                features = tf.squeeze(pool4, axis=1, name='features')
+                flatten = tf.squeeze(pool4, axis=1, name='flatten')
+
+                fc1 = slim.fully_connected(flatten,1024,normalizer_fn=slim.batch_norm,normalizer_params=batch_norm_params)
+                logits = slim.fully_connected(fc1,len(config.ONE_HOT),activation_fn=None)
+                logits = tf.transpose(logits, perm=[1, 0, 2])
+
+
 
                 conv1_trim = tf.constant(2 * (3// 2),
                                          dtype=tf.int32,
@@ -57,57 +63,18 @@ class CTC_Model():
 
                 sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
 
-                return features, sequence_length
-
-
-    def rnn_layer(self,bottom_sequence,sequence_length,rnn_size,scope):
-
-        cell_fw = tf.contrib.rnn.LSTMBlockCell(rnn_size)
-        cell_bw = tf.contrib.rnn.LSTMBlockCell(rnn_size)
-
-        rnn_output, enc_state = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw, cell_bw, bottom_sequence,
-            sequence_length=sequence_length,
-            time_major=True,
-            dtype=tf.float32,
-            scope=scope)
-
-        rnn_output_stack = tf.concat(rnn_output, 2, name='output_stack')
-
-        return rnn_output_stack,enc_state
-
-
-    def rnn_layers(self,features, sequence_length, num_classes):
-
-
-        logit_activation = tf.nn.relu
-        weight_initializer = tf.contrib.layers.variance_scaling_initializer()
-        bias_initializer = tf.constant_initializer(value=0.0)
-
-        with tf.variable_scope("rnn"):
-
-            rnn_sequence = tf.transpose(features, perm=[1, 0, 2], name='time_major')
-            rnn1 ,_ = self.rnn_layer(rnn_sequence, sequence_length, config.RNN_UNITS, 'bdrnn1')
-            rnn2 ,_= self.rnn_layer(rnn1, sequence_length, config.RNN_UNITS, 'bdrnn2')
-            rnn_logits = tf.layers.dense(rnn2, num_classes + 1,
-                                         activation=logit_activation,
-                                         kernel_initializer=weight_initializer,
-                                         bias_initializer=bias_initializer,
-                                         name='logits')
-
-            return rnn_logits
+                return logits, sequence_length
 
 
     def crnn(self,inputs, width,is_training):
-        features, sequence_length = self.base_conv_layer(inputs, width,is_training)
-        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT))
+        logits, sequence_length = self.base_conv_layer(inputs, width,is_training)
         return logits ,sequence_length
 
 
 
-    def ctc_loss_layer(self,rnn_logits, sequence_labels, sequence_length):
+    def ctc_loss_layer(self,logits, sequence_labels, sequence_length):
         """Build CTC Loss layer for training"""
-        loss = tf.nn.ctc_loss(sequence_labels, rnn_logits, sequence_length,
+        loss = tf.nn.ctc_loss(sequence_labels, logits, sequence_length,
                               time_major=True)
         loss = tf.reduce_mean(loss)
         tf.summary.scalar('loss', loss)

@@ -68,20 +68,22 @@ class DataSet(object):
     def get_imges(self,images_path):
         batch_size = len(images_path)
         image_list = []
-        max_wide = 0
+        max_wide = config.MAX_SIZE
         images_wide = []
 
         for path in images_path:
             image = cv2.imread(path)
             image = self.image_normal(image)
+            if image.shape[1]>max_wide:
+                image = cv2.resize(image,(max_wide,32))
             images_wide.append(image.shape[1])
             image_list.append(image)
-            if image.shape[1]>max_wide:
-                max_wide = image.shape[1]
 
         images = np.zeros([batch_size,config.IMAGE_HEIGHT,max_wide])
 
         for i,image in enumerate(image_list):
+            # if image.shape[1]>250:
+            #     print("!")
             images[i,:,0:image.shape[1]] = image
         images = images[...,np.newaxis]
 
@@ -145,6 +147,6 @@ class DataSet(object):
 # while True:
 #     images, labels, wides,length = next(generator)
 #     print('aa')
-#
+# # #
 # images, labels, wides,length = dataset.create_val_data()
 # print('a')

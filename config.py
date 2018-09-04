@@ -15,12 +15,14 @@ class Config(object):
 
     FONT_DATA = './Fonts'
 
+    MAX_SIZE = 250
+
 
     IMAGE_HEIGHT = 32
 
     TEST_DATA = '/home/wzh/test_data'
 
-    MODEL_SAVE = './model2_bn/ctc.ckpt'
+    MODEL_SAVE = './model_without_lstm/ctc.ckpt'
 
     SEQ_MAXSIZE = 75
 
