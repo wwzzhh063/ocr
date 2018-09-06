@@ -15,7 +15,7 @@ ont_hot = {'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'+':10,'-
 
 
 class DataSet(object):
-    def __init__(self,noise_able = False):
+    def __init__(self,noise_able = True):
         clean_data = glob(os.path.join(config.CLEAN_DATA,'*'))
         noise_data = glob(os.path.join(config.NOISE_DATA,'*'))
         self.val_data = glob(os.path.join(config.VAL_DATA,'*'))
@@ -47,6 +47,8 @@ class DataSet(object):
     def image_normal(self,image):
         if image.shape[0]!=32:
             image = cv2.resize(image,(int(image.shape[1]/image.shape[0]*32),32))
+        if image.shape[1]>250:
+            image = cv2.resize(image, (250, 32))
         image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
         image = image/255*2-1
         return image
@@ -55,20 +57,29 @@ class DataSet(object):
         label_list = []
         label_len = []
 
+        target_input = np.ones((len(images_path), config.SEQ_MAXSIZE), dtype=np.float32) + 2
+        target_out = np.ones((len(images_path), config.SEQ_MAXSIZE), dtype=np.float32) + 2
+
         for path in images_path:
-            label = path.split('_')[2].replace('.jpg', '')
+            label = path.split('_')[-1].replace('.jpg', '')
             label = label.replace('.png', '')
             label_list.append(label)
             label_len.append(len(label))
 
-        labels = self.list_to_sparse(label_list),
-        label_len = np.array(label_len, dtype=np.int32)
-        return  labels[0], label_len
+        for i in range(len(label_list)):
+            # seq_len.append(len(label[i]))
+            target_input[i][0] = 0  # 第一个为GO
+            for j in range(len(label_list[i])):
+                target_input[i][j + 1] = config.ONE_HOT[label_list[i][j]]
+                target_out[i][j] = config.ONE_HOT[label_list[i][j]]
+            target_out[i][len(label_list[i])] = 1
+        return target_input, target_out,label_list
+
 
     def get_imges(self,images_path):
         batch_size = len(images_path)
         image_list = []
-        max_wide = 0
+        max_wide = config.IMG_MAXSIZE
         images_wide = []
 
         for path in images_path:
@@ -76,8 +87,7 @@ class DataSet(object):
             image = self.image_normal(image)
             images_wide.append(image.shape[1])
             image_list.append(image)
-            if image.shape[1]>max_wide:
-                max_wide = image.shape[1]
+
 
         images = np.zeros([batch_size,config.IMAGE_HEIGHT,max_wide])
 
@@ -100,18 +110,19 @@ class DataSet(object):
                 step=0
                 epoch = epoch+1
             images_path = all_data[step*batch_size:(step+1)*batch_size]
-            images, wides = self.get_imges(images_path)
-            labels, length = self.get_labels(images_path)
+            images, _ = self.get_imges(images_path)
+            target_input, target_out,label_list = self.get_labels(images_path)
 
             step = step+1
 
-            yield images, labels, wides,length
+            yield images,target_input, target_out,label_list,epoch
 
     def create_val_data(self):
         val_data = self.val_data
-        images,  wides = self.get_imges(val_data)
-        labels,length = self.get_labels(val_data)
-        return images, labels, wides, length
+        images,  _ = self.get_imges(val_data)
+        target_input, target_out, label_list = self.get_labels(val_data)
+        return images,target_input, target_out,label_list
+
 
 # def fuck():
 #     val_data = glob(os.path.join(config.VAL_DATA, '*'))
@@ -143,7 +154,7 @@ class DataSet(object):
 # dataset = DataSet()
 # generator = dataset.train_data_generator(config.BATCH_SIZE)
 # while True:
-#     images, labels, wides,length = next(generator)
+#     images, target_input, target_out,epoch = next(generator)
 #     print('aa')
 #
 # images, labels, wides,length = dataset.create_val_data()

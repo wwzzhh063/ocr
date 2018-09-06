@@ -10,6 +10,8 @@ import os
 from tensorflow.python.layers.core import Dense
 from tensorflow.contrib.seq2seq import ScheduledEmbeddingTrainingHelper
 from utils import DataSet
+from tensorflow.contrib import layers
+from tensorflow.contrib import seq2seq
 
 
 class CTC_Model():
@@ -18,13 +20,13 @@ class CTC_Model():
         print('a')
         self.a = 1
 
-    def base_conv_layer(self,inputs,widths,is_training):
+    def base_conv_layer(self,inputs,is_training):
         batch_norm_params = {'is_training': is_training, 'decay': 0.9
             , 'updates_collections': None}
 
         with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
                             normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
-            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='valid'):
+            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,2],stride=[2,2],padding='valid'):
 
                 conv1 = slim.conv2d(inputs,64,padding='valid',scope='conv1')
                 conv2 = slim.conv2d(conv1,64,scope='conv2')
@@ -42,171 +44,92 @@ class CTC_Model():
                 conv8 = slim.conv2d(conv7,512,scope='conv8')
                 pool4 = slim.max_pool2d(conv8,kernel_size=[3,1],stride=[3,1],scope='pool4')
 
-                features = tf.squeeze(pool4, axis=1, name='features')
+                cnn_features = tf.squeeze(pool4, axis=1, name='features')
 
                 conv1_trim = tf.constant(2 * (3// 2),
                                          dtype=tf.int32,
                                          name='conv1_trim')
 
+                #
+                # after_conv1 = widths - conv1_trim
+                # after_pool1 = tf.floor_div(after_conv1, 2)
+                # after_pool2 = after_pool1 -1
+                # after_pool3 = after_pool2 -1
+                # after_pool4 = after_pool3
+                #
+                # sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
 
-                after_conv1 = widths - conv1_trim
-                after_pool1 = tf.floor_div(after_conv1, 2)
-                after_pool2 = after_pool1 -1
-                after_pool3 = after_pool2 -1
-                after_pool4 = after_pool3
+                return cnn_features
 
-                sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
+    def rnn_layers(self,cnn_features,num_units):
+        cell = tf.contrib.rnn.GRUCell(num_units = num_units)
+        outputs,output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw=cell,cell_bw=cell,inputs=cnn_features,dtype=tf.float32)
+        encoder_outputs = tf.concat(outputs,-1)
 
-                return features, sequence_length
+        return encoder_outputs,output_states
 
+    def decode(self,helper, memory, scope, enc_state, reuse=None):
+        with tf.variable_scope(scope, reuse=reuse):
+            attention_mechanism = tf.contrib.seq2seq.LuongAttention(num_units=config.A_UNITS, memory=memory)
+            cell = tf.contrib.rnn.GRUCell(num_units=config.A_UNITS)
+            attn_cell = tf.contrib.seq2seq.AttentionWrapper(cell, attention_mechanism,
+                                                            attention_layer_size=config.A_UNITS, output_attention=True)
+            output_layer = Dense(units=config.ONE_HOT_SIZE)
 
-    def rnn_layer(self,bottom_sequence,sequence_length,rnn_size,scope):
+            decoder = tf.contrib.seq2seq.BasicDecoder(
+                cell=attn_cell, helper=helper,
+                initial_state=attn_cell.zero_state(dtype=tf.float32, batch_size=config.BATCH_SIZE).clone(
+                    cell_state=enc_state[0]),
+                output_layer=output_layer)
+            outputs = tf.contrib.seq2seq.dynamic_decode(
+                decoder=decoder, output_time_major=False,
+                impute_finished=True, maximum_iterations=config.SEQ_MAXSIZE)
 
-        cell_fw = tf.contrib.rnn.LSTMBlockCell(rnn_size)
-        cell_bw = tf.contrib.rnn.LSTMBlockCell(rnn_size)
-
-        rnn_output, enc_state = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw, cell_bw, bottom_sequence,
-            sequence_length=sequence_length,
-            time_major=True,
-            dtype=tf.float32,
-            scope=scope)
-
-        rnn_output_stack = tf.concat(rnn_output, 2, name='output_stack')
-
-        return rnn_output_stack,enc_state
-
-
-    def rnn_layers(self,features, sequence_length, num_classes):
-
-
-        logit_activation = tf.nn.relu
-        weight_initializer = tf.contrib.layers.variance_scaling_initializer()
-        bias_initializer = tf.constant_initializer(value=0.0)
-
-        with tf.variable_scope("rnn"):
-
-            rnn_sequence = tf.transpose(features, perm=[1, 0, 2], name='time_major')
-            rnn1 ,_ = self.rnn_layer(rnn_sequence, sequence_length, config.RNN_UNITS, 'bdrnn1')
-            rnn2 ,_= self.rnn_layer(rnn1, sequence_length, config.RNN_UNITS, 'bdrnn2')
-            rnn_logits = tf.layers.dense(rnn2, num_classes + 1,
-                                         activation=logit_activation,
-                                         kernel_initializer=weight_initializer,
-                                         bias_initializer=bias_initializer,
-                                         name='logits')
-
-            return rnn_logits
-
-
-    def crnn(self,inputs, width,is_training):
-        features, sequence_length = self.base_conv_layer(inputs, width,is_training)
-        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT))
-        return logits ,sequence_length
+            return outputs
 
 
 
-    def ctc_loss_layer(self,rnn_logits, sequence_labels, sequence_length):
-        """Build CTC Loss layer for training"""
-        loss = tf.nn.ctc_loss(sequence_labels, rnn_logits, sequence_length,
-                              time_major=True)
-        loss = tf.reduce_mean(loss)
-        tf.summary.scalar('loss', loss)
-        return loss
+    def build_network(self,inputs,train_output,target_output,sample_rate,is_training):
+        cnn_features = self.base_conv_layer(inputs,is_training)
+        outputs,output_states = self.rnn_layers(cnn_features,config.A_UNITS)
+
+        output_embed = layers.embed_sequence(train_output,vocab_size=config.ONE_HOT_SIZE,embed_dim=config.ONE_HOT_SIZE,scope='embed')
+
+        embeddings = tf.Variable(tf.truncated_normal(shape=[config.ONE_HOT_SIZE,config.ONE_HOT_SIZE],stddev=0.1),name='decoder_embedding')
+        start_tokens = tf.zeros([config.BATCH_SIZE],dtype=tf.int64)
+
+        train_length = np.array([config.SEQ_MAXSIZE]*config.BATCH_SIZE,dtype=np.int32)
+        train_helper = seq2seq.ScheduledEmbeddingTrainingHelper(output_embed,train_length,embeddings,sample_rate)
+
+        train_outputs = self.decode(train_helper,outputs,'decode',output_states)
+
+        pre_helper = seq2seq.GreedyEmbeddingHelper(embeddings,start_tokens = tf.to_int32(start_tokens),end_token=1)
+
+        pre_outputs = self.decode(pre_helper,outputs,'decode',output_states,reuse=True)
+
+        pred_decode_result = pre_outputs[0].rnn_output
+
+        mask = tf.cast(tf.sequence_mask(config.BATCH_SIZE * [train_length[0] - 1], train_length[0]),
+                       tf.float32)
+        att_loss = tf.contrib.seq2seq.sequence_loss(train_outputs[0].rnn_output, target_output, weights=mask)
+
+        loss = tf.reduce_mean(att_loss)
+
+        return loss,pred_decode_result
 
 
-    def error(self,logits,sequence_length,sequence_label,label_length,greedy_decoder=True):
-        if greedy_decoder:
-            predictions, _ = tf.nn.ctc_greedy_decoder(logits,sequence_length,merge_repeated=True)
-        else:
-
-            predictions, _ = tf.nn.ctc_beam_search_decoder(logits,sequence_length,beam_width=128,top_paths=1,merge_repeated=True)
-
-        hypothesis = tf.cast(predictions[0], tf.int32)  # for edit_distance
-        label_errors = tf.edit_distance(hypothesis, sequence_label, normalize=False)
-        sequence_errors = tf.count_nonzero(label_errors, axis=0)
-        total_label_error = tf.reduce_sum(label_errors)
-        total_labels = tf.reduce_sum(label_length)
-        label_error = tf.truediv(total_label_error,
-                                 tf.cast(total_labels, tf.float32),
-                                 name='label_error')
-        sequence_error = tf.truediv(tf.cast(sequence_errors, tf.int32),
-                                    tf.shape(label_length)[0],
-                                    name='sequence_error')
-        tf.summary.scalar('label_error',label_error)
-        tf.summary.scalar('sequence_error',sequence_error)
-        return label_error,sequence_error
 
 
-    def train(self):
-            inputs = tf.placeholder(tf.float32, [None, 32, None, 1])
-            width = tf.placeholder(tf.int32, [None])
-            sequence_label = tf.sparse_placeholder(tf.int32)
-            label_length = tf.placeholder(tf.int32,[None])
-            is_training = tf.placeholder(tf.bool)
-
-            logits, sequence_length =self.crnn(inputs,width,is_training)
-
-            loss = self.ctc_loss_layer(logits, sequence_label, sequence_length)
-
-            label_error,sequence_error = self.error(logits,sequence_length,sequence_label,label_length)
-
-            # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-            # with tf.control_dependencies(update_ops):
-            #     optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
-            optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
-
-            dataset = utils.DataSet(True)
-            train_generator = dataset.train_data_generator(config.BATCH_SIZE)
-            images_val, labels_val, width_val, length_val = dataset.create_val_data()
-
-            ctc_train_path = './ctc_train_path'
-            ctc_val_path = './ctc_val_path'
-            # saver = tf.train.Saver(tf.global_variables())
-            saver = tf.train.Saver()
-
-            i = 0
-            with tf.Session() as sess:
-                sess.run(tf.global_variables_initializer())
-
-                if os.path.exists(config.MODEL_SAVE.replace('ctc.ckpt','')):
-                    saver.restore(sess,config.MODEL_SAVE)
-                    print("restore")
-
-                merged = tf.summary.merge_all()
-                writer_train = tf.summary.FileWriter(ctc_train_path, sess.graph)
-                writer_val = tf.summary.FileWriter(ctc_val_path, sess.graph)
-
-                while True:
-                    images, labels, width_, length_= next(train_generator)
-
-                    feeddict = {inputs: images, sequence_label: (labels[0], labels[1], labels[2]), width: width_,label_length:length_,is_training:True}
-
-                    sess.run(optimizer, feed_dict=feeddict)
-
-                    if i % 20 == 0:
-
-                        feeddict_train = {inputs: images, sequence_label: (labels[0], labels[1], labels[2]), width: width_,
-                                    label_length: length_,is_training:False}
-                        feeddict_val = {inputs: images_val, sequence_label: (labels_val[0], labels_val[1], labels_val[2]),
-                                        width: width_val,label_length:length_val,is_training:False}
-
-                        train_loss,train_label_error,train_sequence_error, train_log = sess.run([loss,label_error,sequence_error, merged], feed_dict=feeddict_train)
-                        label_error_val, sequence_error_val,val_log = sess.run([label_error, sequence_error,merged],feed_dict=feeddict_val)
-
-                        writer_train.add_summary(train_log, i)
-                        writer_val.add_summary(val_log, i)
-                        print('loss:{}'.format(train_loss))
-                        print('train_label_error{}'.format(train_label_error))
-                        print('train_seq_error{}'.format(train_sequence_error))
-                        print('val_label_error{}'.format(label_error_val))
-                        print('val_seq_error{}'.format(sequence_error_val))
-                        print('----------------------------------------------------------------------------------------------------------------')
-
-                    if i % 100 == 0:
-                        saver.save(sess,config.MODEL_SAVE)
 
 
-                    i = i + 1
+
+
+
+
+
+
+
+
 
 
     def output(self,path):
@@ -300,7 +223,73 @@ class CTC_Model():
 
         print(result)
 
+    def train(self):
+        inputs = tf.placeholder(tf.float32, [None, 32, config.IMG_MAXSIZE, 1])
+        train_output = tf.placeholder(tf.int64, shape=[None, None], name='target_output')
+        target_output = tf.placeholder(tf.int64, shape=[None, None], name='target_output')
+        sample_rate = tf.placeholder(tf.float32, shape=[], name='sample_rate')
+        is_training = tf.placeholder(dtype=tf.bool)
 
+        loss,  pred_decode_result = self.build_network(inputs, train_output, target_output,
+                                                                            sample_rate,is_training)
+        optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
+
+        dataset = utils.DataSet()
+        train_generator = dataset.train_data_generator(config.BATCH_SIZE)
+
+        ctc_train_path = './ctc_train_path'
+        ctc_val_path = './ctc_val_path'
+        # saver = tf.train.Saver(tf.global_variables())
+        saver = tf.train.Saver()
+
+
+        with tf.Session() as sess:
+            sess.run(tf.global_variables_initializer())
+            i = 0
+
+            if os.path.exists(config.MODEL_SAVE.replace('ctc.ckpt', '')):
+                saver.restore(sess, config.MODEL_SAVE)
+                print("restore")
+
+            val_image, val_labels_input, val_labels_output, val_label_list = dataset.create_val_data()
+
+
+
+            while True:
+                images, labels_input, labels_output, train_label_list,epoch = next(train_generator)
+
+                feedict = {inputs: images, train_output: labels_input, target_output: labels_output,
+                            sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: True}
+                sess.run(optimizer, feed_dict=feedict)
+
+
+
+                if i %20 ==0:
+                    train_feedict = {inputs: images, train_output: labels_input, target_output: labels_output,
+                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False}
+                    val_feedict = {inputs: val_image[:32,...], train_output: val_labels_input[:32,...], target_output: val_labels_output[:32,...],
+                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False}
+                    train_result,loss_ = sess.run([pred_decode_result,loss],feed_dict=train_feedict)
+                    val_result = sess.run(pred_decode_result,feed_dict=val_feedict)
+
+                    train_result = np.argmax(train_result,-1)
+                    val_result = np.argmax(val_result,-1)
+
+                    decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
+
+                    train_result = list(map(lambda y:''.join(list(map(lambda x:decode.get(x),y))),train_result))
+                    val_result = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x), y))), val_result))
+
+                    print('loss:{}'.format(loss_))
+                    print('train_label{}'.format(train_label_list[:5]))
+                    print('train_pre{}'.format(train_result[:5]))
+                    print('val_label{}'.format(val_label_list[:5]))
+                    print('val_pre{}'.format(val_result[:5]))
+                    print(
+                        '----------------------------------------------------------------------------------------------------------------')
+
+
+                i= i+1
 
 
 

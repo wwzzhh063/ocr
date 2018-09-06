@@ -11,18 +11,27 @@ class Config(object):
 
     VAL_DATA = './test_data'
 
-    ONE_HOT = {'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'+':10,'-':11,'=':12,'×':13,'÷':14,'(':15,')':16,'':-1}
+    NUM = '0123456789+-×÷()='
+
+    ONE_HOT = {'<GO>': 0, '<EOS>': 1, '<UNK>': 2, '<PAD>': 3}
+
+    for i in range(len(NUM)):
+        ONE_HOT[NUM[i]] = i + 4
+
+    ONE_HOT_SIZE = len(ONE_HOT)
 
     FONT_DATA = './Fonts'
+
+    IMG_MAXSIZE = 250
 
 
     IMAGE_HEIGHT = 32
 
     TEST_DATA = '/home/wzh/test_data'
 
-    MODEL_SAVE = './model2_bn/ctc.ckpt'
+    MODEL_SAVE = './model_attention/ctc.ckpt'
 
-    SEQ_MAXSIZE = 75
+    SEQ_MAXSIZE = 31
 
     VAL_SIZE = 100
 
@@ -39,4 +48,7 @@ class Config(object):
     LEARN_RATE = 1e-4
 
     A_UNITS = 256
+
+
+print(Config.ONE_HOT)
 
