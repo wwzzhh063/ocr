@@ -118,16 +118,28 @@ class CTC_Model():
         return loss,pred_decode_result
 
 
+    def ctc_error(self,logits,sequence_length,sequence_label,label_length,greedy_decoder=True):
+        if greedy_decoder:
+            predictions, _ = tf.nn.ctc_greedy_decoder(logits,sequence_length,merge_repeated=True)
+        else:
+
+            predictions, _ = tf.nn.ctc_beam_search_decoder(logits,sequence_length,beam_width=128,top_paths=1,merge_repeated=True)
 
 
-
-
-
-
-
-
-
-
+        hypothesis = tf.cast(predictions[0], tf.int32)  # for edit_distance
+        label_errors = tf.edit_distance(hypothesis, sequence_label, normalize=False)
+        sequence_errors = tf.count_nonzero(label_errors, axis=0)
+        total_label_error = tf.reduce_sum(label_errors)
+        total_labels = tf.reduce_sum(label_length)
+        label_error = tf.truediv(total_label_error,
+                                 tf.cast(total_labels, tf.float32),
+                                 name='label_error')
+        sequence_error = tf.truediv(tf.cast(sequence_errors, tf.int32),
+                                    tf.shape(label_length)[0],
+                                    name='sequence_error')
+        tf.summary.scalar('label_error',label_error)
+        tf.summary.scalar('sequence_error',sequence_error)
+        return 1-label_error,1-sequence_error
 
 
 
@@ -227,11 +239,21 @@ class CTC_Model():
         inputs = tf.placeholder(tf.float32, [None, 32, config.IMG_MAXSIZE, 1])
         train_output = tf.placeholder(tf.int64, shape=[None, None], name='target_output')
         target_output = tf.placeholder(tf.int64, shape=[None, None], name='target_output')
+        sequence_label = tf.sparse_placeholder(tf.int32)
         sample_rate = tf.placeholder(tf.float32, shape=[], name='sample_rate')
         is_training = tf.placeholder(dtype=tf.bool)
 
+        #for ctcl_acc
+        sequence_length = tf.placeholder(tf.int32,shape=[config.BATCH_SIZE])
+
+
+
+
         loss,  pred_decode_result = self.build_network(inputs, train_output, target_output,
                                                                             sample_rate,is_training)
+
+        ctc_label_acc,ctc_val_acc = self.ctc_error(pred_decode_result,sequence_length,sequence_label,sequence_length)
+
         optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
 
         dataset = utils.DataSet()
@@ -265,28 +287,49 @@ class CTC_Model():
 
 
                 if i %20 ==0:
+                    val_labels_input_ = val_labels_input[:config.BATCH_SIZE,...]
+                    val_labels_output_ = val_labels_output[:config.BATCH_SIZE,...]
+
+
+
+                    temp1 = np.zeros([config.BATCH_SIZE]) + config.SEQ_MAXSIZE
+                    shape = np.array([config.BATCH_SIZE,config.SEQ_MAXSIZE])
+                    x,y = np.meshgrid(np.arange(0,config.SEQ_MAXSIZE),np.arange(0,config.BATCH_SIZE))
+                    x = x[...,np.newaxis]
+                    y = y[...,np.newaxis]
+                    index = np.concatenate([y,x],-1).reshape([-1,2])
+
                     train_feedict = {inputs: images, train_output: labels_input, target_output: labels_output,
-                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False}
-                    val_feedict = {inputs: val_image[:32,...], train_output: val_labels_input[:32,...], target_output: val_labels_output[:32,...],
-                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False}
-                    train_result,loss_ = sess.run([pred_decode_result,loss],feed_dict=train_feedict)
-                    val_result = sess.run(pred_decode_result,feed_dict=val_feedict)
+                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False,sequence_length:temp1,
+                                     sequence_label:[index,labels_output.flatten(),shape]}
+
+                    val_feedict = {inputs: val_image[:32,...], train_output: val_labels_input_, target_output: val_labels_output_,sequence_length: temp1,
+                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False,
+                                   sequence_label:[index,val_labels_output_.flatten(),shape]}
+                    train_result,loss_,train_ctc_label_acc,train_ctc_val_acc = sess.run([pred_decode_result,loss,ctc_label_acc,ctc_val_acc ],feed_dict=train_feedict)
+                    val_result,val_ctc_label_acc_,val_ctc_val_acc_ = sess.run([pred_decode_result,ctc_label_acc,ctc_val_acc ],feed_dict=val_feedict)
 
                     train_result = np.argmax(train_result,-1)
                     val_result = np.argmax(val_result,-1)
 
                     decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
 
-                    train_result = list(map(lambda y:''.join(list(map(lambda x:decode.get(x),y))),train_result))
-                    val_result = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x), y))), val_result))
+                    train_result = list(map(lambda y:''.join(list(map(lambda x:decode.get(x).split('<EOS>')[0],y))),train_result))
+                    val_result = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x).split('<EOS>')[0], y))), val_result))
 
                     print('loss:{}'.format(loss_))
                     print('train_label{}'.format(train_label_list[:5]))
                     print('train_pre{}'.format(train_result[:5]))
                     print('val_label{}'.format(val_label_list[:5]))
                     print('val_pre{}'.format(val_result[:5]))
+                    print('train_label_acc{}'.format(train_ctc_label_acc))
+                    print('train_seq_acc{}'.format(train_ctc_val_acc))
+                    print('val_label_acc{}'.format(val_ctc_label_acc_))
+                    print('val_seq_acc{}'.format(val_ctc_val_acc_))
                     print(
                         '----------------------------------------------------------------------------------------------------------------')
+
+
 
 
                 i= i+1
