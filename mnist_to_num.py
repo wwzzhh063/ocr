@@ -27,6 +27,12 @@ noise_list = ['gaussian','salt']
 
 
 
+#
+# def create_equation():
+#     equation = []
+#     length = random.randint(2,Config.EQUATION_MAX_LENGTH)
+#     parentheses = random.randint(1,4)
+#     for i in range(length)
 
 
 

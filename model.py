@@ -79,7 +79,6 @@ class CTC_Model():
 
     def rnn_layers(self,features, sequence_length, num_classes):
 
-
         logit_activation = tf.nn.relu
         weight_initializer = tf.contrib.layers.variance_scaling_initializer()
         bias_initializer = tf.constant_initializer(value=0.0)
@@ -134,7 +133,7 @@ class CTC_Model():
                                     name='sequence_error')
         tf.summary.scalar('label_error',label_error)
         tf.summary.scalar('sequence_error',sequence_error)
-        return label_error,sequence_error
+        return 1-label_error,1-sequence_error
 
 
     def train(self):
@@ -183,7 +182,7 @@ class CTC_Model():
 
                     sess.run(optimizer, feed_dict=feeddict)
 
-                    if i % 20 == 0:
+                    if i % 2 == 0:
 
                         feeddict_train = {inputs: images, sequence_label: (labels[0], labels[1], labels[2]), width: width_,
                                     label_length: length_,is_training:False}
@@ -196,14 +195,14 @@ class CTC_Model():
                         writer_train.add_summary(train_log, i)
                         writer_val.add_summary(val_log, i)
                         print('loss:{}'.format(train_loss))
-                        print('train_label_error{}'.format(train_label_error))
-                        print('train_seq_error{}'.format(train_sequence_error))
-                        print('val_label_error{}'.format(label_error_val))
-                        print('val_seq_error{}'.format(sequence_error_val))
+                        print('train_label_acc{}'.format(train_label_error))
+                        print('train_seq_acc{}'.format(train_sequence_error))
+                        print('val_label_acc{}'.format(label_error_val))
+                        print('val_seq_acc{}'.format(sequence_error_val))
                         print('----------------------------------------------------------------------------------------------------------------')
-
-                    if i % 100 == 0:
-                        saver.save(sess,config.MODEL_SAVE)
+                    #
+                    # if i % 100 == 0:
+                    #     saver.save(sess,config.MODEL_SAVE)
 
 
                     i = i + 1

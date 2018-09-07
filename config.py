@@ -15,6 +15,8 @@ class Config(object):
 
     FONT_DATA = './Fonts'
 
+    EQUATION_MAX_LENGTH = 3
+
 
     IMAGE_HEIGHT = 32
 

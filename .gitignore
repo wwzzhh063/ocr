@@ -4,3 +4,6 @@ font
 test_data
 Fonts
 test.py
+.idea
+ctc_train_path
+ctc_val_path
