@@ -31,7 +31,7 @@ class Config(object):
 
     MODEL_SAVE = './model_attention/ctc.ckpt'
 
-    SEQ_MAXSIZE = 31
+    SEQ_MAXSIZE = 24
 
     VAL_SIZE = 100
 

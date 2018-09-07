@@ -119,6 +119,7 @@ class CTC_Model():
 
 
     def ctc_error(self,logits,sequence_length,sequence_label,label_length,greedy_decoder=True):
+        logits = tf.transpose(logits,perm=[1,0,2])
         if greedy_decoder:
             predictions, _ = tf.nn.ctc_greedy_decoder(logits,sequence_length,merge_repeated=True)
         else:
@@ -301,11 +302,11 @@ class CTC_Model():
 
                     train_feedict = {inputs: images, train_output: labels_input, target_output: labels_output,
                                 sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False,sequence_length:temp1,
-                                     sequence_label:[index,labels_output.flatten(),shape]}
+                                     sequence_label:(index,labels_output.flatten(),shape)}
 
                     val_feedict = {inputs: val_image[:32,...], train_output: val_labels_input_, target_output: val_labels_output_,sequence_length: temp1,
                                 sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False,
-                                   sequence_label:[index,val_labels_output_.flatten(),shape]}
+                                   sequence_label:(index,val_labels_output_.flatten(),shape)}
                     train_result,loss_,train_ctc_label_acc,train_ctc_val_acc = sess.run([pred_decode_result,loss,ctc_label_acc,ctc_val_acc ],feed_dict=train_feedict)
                     val_result,val_ctc_label_acc_,val_ctc_val_acc_ = sess.run([pred_decode_result,ctc_label_acc,ctc_val_acc ],feed_dict=val_feedict)
 
