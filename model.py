@@ -253,7 +253,7 @@ class CTC_Model():
         loss,  pred_decode_result = self.build_network(inputs, train_output, target_output,
                                                                             sample_rate,is_training)
 
-        ctc_label_acc,ctc_val_acc = self.ctc_error(pred_decode_result,sequence_length,sequence_label,sequence_length)
+        # ctc_label_acc,ctc_val_acc = self.ctc_error(pred_decode_result,sequence_length,sequence_label,sequence_length)
 
         optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
 
@@ -307,26 +307,28 @@ class CTC_Model():
                     val_feedict = {inputs: val_image[:32,...], train_output: val_labels_input_, target_output: val_labels_output_,sequence_length: temp1,
                                 sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False,
                                    sequence_label:(index,val_labels_output_.flatten(),shape)}
-                    train_result,loss_,train_ctc_label_acc,train_ctc_val_acc = sess.run([pred_decode_result,loss,ctc_label_acc,ctc_val_acc ],feed_dict=train_feedict)
-                    val_result,val_ctc_label_acc_,val_ctc_val_acc_ = sess.run([pred_decode_result,ctc_label_acc,ctc_val_acc ],feed_dict=val_feedict)
+                    # train_result,loss_,train_ctc_label_acc,train_ctc_val_acc = sess.run([pred_decode_result,loss,ctc_label_acc,ctc_val_acc ],feed_dict=train_feedict)
+                    # val_result,val_ctc_label_acc_,val_ctc_val_acc_ = sess.run([pred_decode_result,ctc_label_acc,ctc_val_acc ],feed_dict=val_feedict)
+                    train_result,loss_ = sess.run([pred_decode_result,loss ],feed_dict=train_feedict)
+                    val_result = sess.run(pred_decode_result,feed_dict=val_feedict)
 
                     train_result = np.argmax(train_result,-1)
                     val_result = np.argmax(val_result,-1)
 
                     decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
 
-                    train_result = list(map(lambda y:''.join(list(map(lambda x:decode.get(x).split('<EOS>')[0],y))),train_result))
-                    val_result = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x).split('<EOS>')[0], y))), val_result))
+                    train_result = list(map(lambda y:''.join(list(map(lambda x:decode.get(x),y))).split('<EOS>')[0],train_result))
+                    val_result = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x), y))).split('<EOS>')[0], val_result))
 
                     print('loss:{}'.format(loss_))
                     print('train_label{}'.format(train_label_list[:5]))
                     print('train_pre{}'.format(train_result[:5]))
                     print('val_label{}'.format(val_label_list[:5]))
                     print('val_pre{}'.format(val_result[:5]))
-                    print('train_label_acc{}'.format(train_ctc_label_acc))
-                    print('train_seq_acc{}'.format(train_ctc_val_acc))
-                    print('val_label_acc{}'.format(val_ctc_label_acc_))
-                    print('val_seq_acc{}'.format(val_ctc_val_acc_))
+                    # print('train_label_acc{}'.format(train_ctc_label_acc))
+                    # print('train_seq_acc{}'.format(train_ctc_val_acc))
+                    # print('val_label_acc{}'.format(val_ctc_label_acc_))
+                    # print('val_seq_acc{}'.format(val_ctc_val_acc_))
                     print(
                         '----------------------------------------------------------------------------------------------------------------')
 
