@@ -154,7 +154,7 @@ class CTC_Model():
             #     optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
             optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
 
-            dataset = utils.DataSet(True)
+            dataset = utils.DataSet()
             train_generator = dataset.train_data_generator(config.BATCH_SIZE)
             images_val, labels_val, width_val, length_val = dataset.create_val_data()
 
@@ -182,7 +182,7 @@ class CTC_Model():
 
                     sess.run(optimizer, feed_dict=feeddict)
 
-                    if i % 2 == 0:
+                    if i % 20 == 0:
 
                         feeddict_train = {inputs: images, sequence_label: (labels[0], labels[1], labels[2]), width: width_,
                                     label_length: length_,is_training:False}
@@ -201,8 +201,8 @@ class CTC_Model():
                         print('val_seq_acc{}'.format(sequence_error_val))
                         print('----------------------------------------------------------------------------------------------------------------')
                     #
-                    # if i % 100 == 0:
-                    #     saver.save(sess,config.MODEL_SAVE)
+                    if i % 100 == 0:
+                        saver.save(sess,config.MODEL_SAVE)
 
 
                     i = i + 1
@@ -298,14 +298,6 @@ class CTC_Model():
 
 
         print(result)
-
-
-
-
-
-
-
-
 
 
 

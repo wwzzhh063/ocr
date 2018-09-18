@@ -7,3 +7,5 @@ test.py
 .idea
 ctc_train_path
 ctc_val_path
+model_attention
+__pycache__
