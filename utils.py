@@ -109,9 +109,19 @@ class DataSet(object):
 
     def create_val_data(self):
         val_data = self.val_data
-        images,  wides = self.get_imges(val_data)
-        labels,length = self.get_labels(val_data)
-        return images, labels, wides, length
+        all_val_data = []
+        i = 0
+        while i*config.BATCH_SIZE<len(val_data):
+            if (i+1)*config.BATCH_SIZE>len(val_data):
+                end = len(val_data)
+            else:
+                end = (i+1)*config.BATCH_SIZE
+            images,  wides = self.get_imges(val_data[i*config.BATCH_SIZE:end])
+            labels,length = self.get_labels(val_data[i*config.BATCH_SIZE:end])
+            all_val_data.append((images, labels, wides, length))
+            i = i+1
+        return all_val_data
+
 
 # def fuck():
 #     val_data = glob(os.path.join(config.VAL_DATA, '*'))

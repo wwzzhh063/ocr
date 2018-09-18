@@ -10,6 +10,7 @@ import os
 from tensorflow.python.layers.core import Dense
 from tensorflow.contrib.seq2seq import ScheduledEmbeddingTrainingHelper
 from utils import DataSet
+import random
 
 
 class CTC_Model():
@@ -156,7 +157,7 @@ class CTC_Model():
 
             dataset = utils.DataSet()
             train_generator = dataset.train_data_generator(config.BATCH_SIZE)
-            images_val, labels_val, width_val, length_val = dataset.create_val_data()
+            all_val_data = dataset.create_val_data()
 
             ctc_train_path = './ctc_train_path'
             ctc_val_path = './ctc_val_path'
@@ -183,11 +184,16 @@ class CTC_Model():
                     sess.run(optimizer, feed_dict=feeddict)
 
                     if i % 20 == 0:
+                        images_val, labels_val, width_val, length_val = random.sample(all_val_data,1)[0]
 
                         feeddict_train = {inputs: images, sequence_label: (labels[0], labels[1], labels[2]), width: width_,
                                     label_length: length_,is_training:False}
+
+
                         feeddict_val = {inputs: images_val, sequence_label: (labels_val[0], labels_val[1], labels_val[2]),
                                         width: width_val,label_length:length_val,is_training:False}
+
+
 
                         train_loss,train_label_error,train_sequence_error, train_log = sess.run([loss,label_error,sequence_error, merged], feed_dict=feeddict_train)
                         label_error_val, sequence_error_val,val_log = sess.run([label_error, sequence_error,merged],feed_dict=feeddict_val)

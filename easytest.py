@@ -1,9 +1,9 @@
 from glob import glob
 import os
 import config
+import numpy as np
 
-dict = {}
-for i ,j in enumerate(config.Config.ONE_HOT):
-    dict[j] = i
-dict[''] = -1
-print(dict)
+a = 0
+b = np.zeros([24,24,24])
+c = a+b
+print(c)
