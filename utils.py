@@ -13,6 +13,31 @@ from config import Config as config
 
 ont_hot = config.ONE_HOT
 
+def create_input(image_list,max_wide,wide_list):
+    images = np.zeros([len(image_list), config.IMAGE_HEIGHT, max_wide])
+
+    for i, image in enumerate(image_list):
+        images[i, :, 0:image.shape[1]] = image
+    images = images[..., np.newaxis]
+
+    wides = np.array(wide_list, dtype=np.int32)
+
+    return images,wides
+
+def image_normal(image):
+    if image.shape[0] != 32:
+        image = cv2.resize(image, (int(image.shape[1] / image.shape[0] * 32), 32))
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image = image / 255 * 2 - 1
+    return image
+
+def pre_to_output(sentence):
+    sentence = sentence.tolist()
+    decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
+    result = ''.join(list(map(lambda x: decode.get(x), sentence[0])))
+
+    return result
+
 
 class DataSet(object):
     def __init__(self,noise_able = False):
@@ -56,7 +81,7 @@ class DataSet(object):
         label_len = []
 
         for path in images_path:
-            label = path.split('_')[2].replace('.jpg', '')
+            label = path.split('_')[-1].replace('.jpg', '')
             label = label.replace('.png', '')
             label_list.append(label)
             label_len.append(len(label))
@@ -102,10 +127,12 @@ class DataSet(object):
             images_path = all_data[step*batch_size:(step+1)*batch_size]
             images, wides = self.get_imges(images_path)
             labels, length = self.get_labels(images_path)
+            if wides[0]<10:
+                print(images_path)
 
             step = step+1
 
-            yield images, labels, wides,length
+            yield images, labels, wides,length,epoch
 
     def create_val_data(self):
         val_data = self.val_data
@@ -151,10 +178,12 @@ class DataSet(object):
 # #
 # print (os.environ['HOME'])
 # dataset = DataSet()
-# generator = dataset.train_data_generator(config.BATCH_SIZE)
+# generator = dataset.train_data_generator(1)
 # while True:
-#     images, labels, wides,length = next(generator)
-#     print('aa')
+#     images, labels, wides,length ,epoch= next(generator)
+#     if epoch==1:
+#         break
+    # print('aa')
 #
 # images, labels, wides,length = dataset.create_val_data()
 # print('a')

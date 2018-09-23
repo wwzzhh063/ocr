@@ -50,61 +50,67 @@ def label_replace(label):
 
 list = []
 
-for i  in tqdm(glob('/home/wzh/suanshi_train/*')):
+def read_label(xml):
+    try:
+        tree = ET.parse(xml)
+    except:
+        print(xml)
+    root = tree.getroot()
+    label = root.find('outputs/transcript')
 
-    for xml in glob(os.path.join(i,'outputs/*')):
-        other = [path for path in glob(os.path.join(i,'*')) if 'outputs' not in path][0]
-        try:
-            tree = ET.parse(xml)
-        except:
-            print(xml)
-        root = tree.getroot()
-        label = root.find('outputs/transcript')
+    if label != None:
+        label = label.text
+        label = label_replace(label)
+        if label != 'None' and label != 'Good':
+            for j in label:
+                if j not in list:
+                    list.append(j)
 
-        if label != None:
-            label = label.text
-            label = label_replace(label)
-            if label != 'None' and label!='Good':
-                for j in label:
-                    if j not in list:
-                        list.append(j)
+    else:
+        label = 'None'
 
-        else:
-            label = 'None'
-        name = root.find('path').text
-        name = name.split('\\')[-1]
-        path = os.path.join(other,name)
+    name = root.find('path').text
+    name = name.split('\\')[-1]
 
+    return label,name
 
 
+def create_dataet():
+    num = 0
+    for i in tqdm(glob('/home/wzh/suanshi_val/*')):
+
+        for xml in glob(os.path.join(i, 'outputs/*')):
+            other = [path for path in glob(os.path.join(i, '*')) if 'outputs' not in path][0]
+
+            label, name = read_label(xml)
+
+            path = os.path.join(other, name)
+
+            if label != 'None' and label != 'Good' and label != '':
+                subprocess.call(['cp', path, '/home/wzh/ocr_val/' + str(num) + '_' + label + '.jpg'])
+
+                num = num + 1
+
+    # onthot = open('./onehot.txt','w')
+    # onthot.write(str(list))
+    # print(list)
+
+# create_dataet()
 
 
-        if label != 'None' and label!='Good' and label!='':
 
-            subprocess.call(['cp',path,'/home/wzh/Desktop/ocr_train/' + str(num) + '_' + label + '.jpg'])
-        # try:
-        #     os.system('cp {} {}'.format(path,'/home/wzh/Desktop/ocr_dataset/'+str(num)+'_'+label+'.jpg'))
-        # except:
-        #     print(label)
-        num = num+1
-
-onthot = open('./onehot.txt','w')
-onthot.write(str(list))
-print(list)
-
-        # except:
-        #     print(xml)
-        # try:
-        #     label = root.find('outputs/transcript').text
-        #     name = root.find('path').text
-        # except:
-            # print(xml)
-            # pass
-        # if not label:
-        #     print(xml)
-        # print(label)
-
-
+#查看xml是否有问题
+# except:
+#     print(xml)
+# try:
+#     label = root.find('outputs/transcript').text
+#     name = root.find('path').text
+# except:
+# print(xml)
+# pass
+# if not label:
+#     print(xml)
+# print(label)
 
 
 

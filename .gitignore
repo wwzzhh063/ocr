@@ -9,3 +9,6 @@ ctc_train_path
 ctc_val_path
 model_attention
 __pycache__
+img
+*.jpg
+*.png

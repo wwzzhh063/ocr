@@ -7,6 +7,12 @@ from tqdm import *
 from config import Config
 from tensorflow.examples.tutorials.mnist import input_data
 
+
+"""
+mnist可视化
+将minst数据集由二进制文件转化为图片
+"""
+
 mnist = input_data.read_data_sets("./mnist/", one_hot=True)
 
 train_images = mnist.train.images

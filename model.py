@@ -11,6 +11,11 @@ from tensorflow.python.layers.core import Dense
 from tensorflow.contrib.seq2seq import ScheduledEmbeddingTrainingHelper
 from utils import DataSet
 import random
+import os
+
+os.environ['CUDA_VISIBLE_DEVICES']='1'
+
+
 
 
 class CTC_Model():
@@ -25,9 +30,9 @@ class CTC_Model():
 
         with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
                             normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
-            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='valid'):
+            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='SAME'):
 
-                conv1 = slim.conv2d(inputs,64,padding='valid',scope='conv1')
+                conv1 = slim.conv2d(inputs,64,padding='VALID',scope='conv1')
                 conv2 = slim.conv2d(conv1,64,scope='conv2')
                 poo1 = slim.max_pool2d(conv2,kernel_size=[2,2],stride=[2,2],scope='pool1')
 
@@ -47,7 +52,7 @@ class CTC_Model():
 
                 conv1_trim = tf.constant(2 * (3// 2),
                                          dtype=tf.int32,
-                                         name='conv1_trim')
+                                      name='conv1_trim')
 
 
                 after_conv1 = widths - conv1_trim
@@ -57,8 +62,54 @@ class CTC_Model():
                 after_pool4 = after_pool3
 
                 sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
+                sequence_length = tf.maximum(sequence_length,1)
 
                 return features, sequence_length
+
+
+    def crnn_conv_layer2(self,inputs,widths,is_training):
+        batch_norm_params = {'is_training': is_training, 'decay': 0.9
+            , 'updates_collections': None}
+
+        with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
+                            normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
+            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='SAME'):
+
+                conv1 = slim.conv2d(inputs,64,padding='VALID',scope='conv1')
+                conv2 = slim.conv2d(conv1,64,scope='conv2')
+                poo1 = slim.max_pool2d(conv2,kernel_size=[2,2],stride=[2,2],scope='pool1')
+
+                conv3 = slim.conv2d(poo1,128,scope='conv3')
+                conv4 = slim.conv2d(conv3,128,scope='conv4')
+                pool2 = slim.max_pool2d(conv4,scope='pool2')
+
+                conv5 = slim.conv2d(pool2,256,scope='conv5')
+                conv6 = slim.conv2d(conv5,256,scope='conv6')
+                pool3 = slim.max_pool2d(conv6,scope='pool3')
+
+                conv7 = slim.conv2d(pool3,512,scope='conv7')
+                conv8 = slim.conv2d(conv7,512,scope='conv8')
+                pool4 = slim.max_pool2d(conv8,kernel_size=[3,1],stride=[3,1],scope='pool4')
+
+                features = tf.squeeze(pool4, axis=1, name='features')
+
+                conv1_trim = tf.constant(2 * (3// 2),
+                                         dtype=tf.int32,
+                                      name='conv1_trim')
+
+
+                after_conv1 = widths - conv1_trim
+                after_pool1 = tf.floor_div(after_conv1, 2)
+                after_pool2 = after_pool1 -1
+                after_pool3 = after_pool2 -1
+                after_pool4 = after_pool3
+
+                sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
+                sequence_length = tf.maximum(sequence_length,1)
+
+                return features, sequence_length
+
+
 
 
     def rnn_layer(self,bottom_sequence,sequence_length,rnn_size,scope):
@@ -108,7 +159,7 @@ class CTC_Model():
     def ctc_loss_layer(self,rnn_logits, sequence_labels, sequence_length):
         """Build CTC Loss layer for training"""
         loss = tf.nn.ctc_loss(sequence_labels, rnn_logits, sequence_length,
-                              time_major=True)
+                              time_major=True,ignore_longer_outputs_than_inputs = True)
         loss = tf.reduce_mean(loss)
         tf.summary.scalar('loss', loss)
         return loss
@@ -153,7 +204,9 @@ class CTC_Model():
             # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             # with tf.control_dependencies(update_ops):
             #     optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
-            optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
+            tf.train.MomentumOptimizer
+            # optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
+            optimizer = tf.train.MomentumOptimizer(config.LEARN_RATE).minimize(loss)
 
             dataset = utils.DataSet()
             train_generator = dataset.train_data_generator(config.BATCH_SIZE)
@@ -209,6 +262,35 @@ class CTC_Model():
                     #
                     if i % 100 == 0:
                         saver.save(sess,config.MODEL_SAVE)
+
+
+                    if i%1000==0:
+                        label_error_val_all, sequence_error_val_all = 0,0
+                        j =0
+                        for i in range(len(all_val_data)):
+                            images_val, labels_val, width_val, length_val = all_val_data[i]
+
+                            feeddict_val = {inputs: images_val,
+                                            sequence_label: (labels_val[0], labels_val[1], labels_val[2]),
+                                            width: width_val, label_length: length_val, is_training: False}
+
+                            label_error_val, sequence_error_val, val_log = sess.run(
+                                [label_error, sequence_error, merged], feed_dict=feeddict_val)
+                            label_error_val_all = label_error_val_all+label_error_val
+                            sequence_error_val_all = sequence_error_val_all+sequence_error_val
+                            j=j+1
+                        label_error_val_all = label_error_val/j
+                        sequence_error_val_all = sequence_error_val_all/j
+                        f = open('log.txt','a')
+                        f.write('val_label_acc_all{}'.format(label_error_val_all))
+                        f.write('val_seq_acc_all{}'.format(sequence_error_val_all))
+                        f.write('----------------------------------------------------------------------------------------------------------------')
+                        print('val_label_acc_all{}'.format(label_error_val_all))
+                        print('val_seq_acc_all{}'.format(sequence_error_val_all))
+                        print('----------------------------------------------------------------------------------------------------------------')
+                        print(
+                            '----------------------------------------------------------------------------------------------------------------')
+
 
 
                     i = i + 1
@@ -307,12 +389,12 @@ class CTC_Model():
 
 
 
-
-
-model = CTC_Model()
-model.train()
-# model.output('/home/wzh/1_4+6=78.png')
-# model.analyze_result('/home/wzh/analyze')
+#
+#
+# model = CTC_Model()
+# # # model.train()
+# model.output('/home/wzh/ocr/0_test.png')
+# # model.analyze_result('/home/wzh/analyze')
 
 
 

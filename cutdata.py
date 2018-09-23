@@ -7,50 +7,98 @@ from tqdm import tqdm
 
 class ParseXml(object):
 
-    def __init__(self, xml_path):
+    def __init__(self, xml_path, rect=False):
         self.classes = []
         self.bbox = []
-        self.img_name = xml_path.split('/')[-1]
-        self._read_xml(xml_path)
+        self.rect = rect
+        self.img_name = xml_path.split('/')[-1].replace('.xml', '')
+        # print(self.img_name)
+        self.res = self._read_xml(xml_path)
 
     def get_bbox_class(self):
-        return self.img_name, self.classes, self.bbox
+
+        if self.res is True:
+            return self.img_name, self.classes, self.bbox,self.jpg_or_JPG
+        else:
+            return self.img_name, None, None
 
     def _read_xml(self, xml_path):
         tree = ET.parse(xml_path)
         root = tree.getroot()
 
         itmes = root.findall("outputs/object/item")
-        for i in itmes:
-            self._parse_item(i)
 
+        self.jpg_or_JPG = root.find('path').text.split('.')[-1]
+
+        for i in itmes:
+            res = self._parse_item(i)
+            if res is False:
+                return False
+        return True
 
     def _parse_item(self, item):
         class_elem = item.find('name')
-        self.classes.append(int(class_elem.text))
+
 
 
         if item.find('bndbox'):
             bbox = []
             bndbox = item.find('bndbox')
+
+
             bbox.append(int(bndbox.find('xmin').text))
             bbox.append(int(bndbox.find('ymin').text))
             bbox.append(int(bndbox.find('xmax').text))
             bbox.append(int(bndbox.find('ymax').text))
             self.bbox.append(bbox)
-        else:
+            self.classes.append(int(class_elem.text))
+            return True
+        elif item.find('polygon'):
             pos = []
             polygon = item.find('polygon')
             pos.append(int(polygon.find('x1').text))
             pos.append(int(polygon.find('y1').text))
-            pos.append(int(polygon.find('x2').text))
-            pos.append(int(polygon.find('y2').text))
+
+            if polygon.find('x2') is not None:
+                pos.append(int(polygon.find('x2').text))
+                pos.append(int(polygon.find('y2').text))
+            else:
+                print('img error:', self.img_name)
+                print('多边形框选有问题,少点')
+                return False
+
             pos.append(int(polygon.find('x3').text))
             pos.append(int(polygon.find('y3').text))
-            pos.append(int(polygon.find('x4').text))
-            pos.append(int(polygon.find('y4').text))
-            self.bbox.append(pos)
 
+            if polygon.find('y4') is not None:
+                pos.append(int(polygon.find('x4').text))
+                pos.append(int(polygon.find('y4').text))
+
+                if not self.rect:
+                    self.bbox.append(pos)
+                else:
+                    bbox = []
+                    bbox.append(min(pos[0],pos[2],pos[4],pos[6]))
+                    bbox.append(min(pos[1], pos[3], pos[5], pos[7]))
+                    bbox.append(max(pos[0], pos[2], pos[4], pos[6]))
+                    bbox.append(max(pos[1], pos[3], pos[5], pos[7]))
+                    self.bbox.append(bbox)
+                self.classes.append(int(class_elem.text))
+            else:
+                print('img error:', self.img_name)
+                print('多边形框选有问题,少点')
+                return False
+
+            if polygon.find('x5'):
+                print('img error:', self.img_name)
+                print('多边形框选有问题.多点')
+                return False
+
+            return True
+        else:
+            print('img error:', self.img_name)
+            print('含有其他类型bbox')
+            return False
 
 
 def draw_bbox(img_name, class_list, bbox_list):
@@ -269,12 +317,13 @@ def preprocess(img,size = 15):
         i = i + size
 
     img1 = np.ones(img.shape) * mask * 255
-    cv2.imwrite("./img1.jpg",img1)
+    #cv2.imwrite("./img1.jpg",img1)
     img2 = 255-img2
-    cv2.imwrite("./img2.jpg", img2)
+    #cv2.imwrite("./img2.jpg", img2)
     img2 = cv2.cvtColor(img2,cv2.COLOR_GRAY2BGR)
     img3 = img1*(img2/255)
     cv2.imwrite("./img3.jpg", img3)
+    return img3
 
 
 
@@ -288,7 +337,7 @@ if __name__ =="__main__":
     # local_enhance('2.jpeg')
     # hough(img_normal('2.jpeg'))
     # img_normal('2.jpeg')
-    preprocess(cv2.imread("1.jpg"))
+    preprocess(cv2.imread("１.JPG"))
 
     # for i in tqdm(range(len(xml_name))):
     #     name = xml_path+xml_name[i]

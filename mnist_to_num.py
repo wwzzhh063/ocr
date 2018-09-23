@@ -9,6 +9,10 @@ from tqdm import *
 import skimage
 from captcha.image import ImageCaptcha
 
+"""
+生成合成数据
+"""
+
 path = sorted(glob(os.path.join(Config.MNIST_PATH,'*')))
 
 image_path = []
