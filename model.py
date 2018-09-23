@@ -120,7 +120,7 @@ class CTC_Model():
                 poo1 = slim.max_pool2d(conv1,kernel_size=[2,2],stride=[2,2],scope='pool1')
 
                 conv2 = slim.conv2d(poo1,128,scope='conv2')
-                pool2 = slim.max_pool2d(conv2,kernel_size=[2,2],stride=[2,2],scope='pool2')
+                pool2 = slim.max_pool2d(conv2,scope='pool2')
 
                 conv3 = slim.conv2d(pool2,256,scope='conv3')
                 conv4 = slim.conv2d(conv3,256,scope='conv4')
