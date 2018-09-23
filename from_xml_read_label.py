@@ -79,7 +79,7 @@ for i  in tqdm(glob('/home/wzh/suanshi_train/*')):
 
 
 
-        if label != 'None' and label!='Good':
+        if label != 'None' and label!='Good' and label!='':
 
             subprocess.call(['cp',path,'/home/wzh/Desktop/ocr_train/' + str(num) + '_' + label + '.jpg'])
         # try:
