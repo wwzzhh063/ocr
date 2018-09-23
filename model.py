@@ -30,7 +30,7 @@ class CTC_Model():
 
         with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
                             normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
-            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='SAME'):
+            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='VALID'):
 
                 conv1 = slim.conv2d(inputs,64,padding='VALID',scope='conv1')
                 conv2 = slim.conv2d(conv1,64,scope='conv2')
@@ -66,18 +66,17 @@ class CTC_Model():
 
                 return features, sequence_length
 
-
-    def crnn_conv_layer2(self,inputs,widths,is_training):
+    def base_conv_layer2(self,inputs,widths,is_training):
         batch_norm_params = {'is_training': is_training, 'decay': 0.9
             , 'updates_collections': None}
 
         with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
                             normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
-            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='SAME'):
+            with slim.arg_scope([slim.max_pool2d],kernel_size=[2,2],stride=[2,1],padding='VALID'):
 
                 conv1 = slim.conv2d(inputs,64,padding='VALID',scope='conv1')
                 conv2 = slim.conv2d(conv1,64,scope='conv2')
-                poo1 = slim.max_pool2d(conv2,kernel_size=[2,2],stride=[2,2],scope='pool1')
+                poo1 = slim.max_pool2d(conv2,stride=[2,2],scope='pool1')
 
                 conv3 = slim.conv2d(poo1,128,scope='conv3')
                 conv4 = slim.conv2d(conv3,128,scope='conv4')
@@ -105,6 +104,48 @@ class CTC_Model():
                 after_pool4 = after_pool3
 
                 sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
+                sequence_length = tf.maximum(sequence_length,1)
+
+                return features, sequence_length
+
+
+    def crnn_conv_layer(self,inputs,widths,is_training):
+        batch_norm_params = {'is_training': is_training, 'decay': 0.9
+            , 'updates_collections': None}
+
+        with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4)):
+            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='SAME'):
+
+                conv1 = slim.conv2d(inputs,64,scope='conv1')
+                poo1 = slim.max_pool2d(conv1,kernel_size=[2,2],stride=[2,2],scope='pool1')
+
+                conv2 = slim.conv2d(poo1,128,scope='conv2')
+                pool2 = slim.max_pool2d(conv2,kernel_size=[2,2],stride=[2,2],scope='pool2')
+
+                conv3 = slim.conv2d(pool2,256,scope='conv3')
+                conv4 = slim.conv2d(conv3,256,scope='conv4')
+                pool3 = slim.max_pool2d(conv4,scope='pool3')
+
+                conv5 = slim.conv2d(pool3,512,scope='conv5',normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params)
+                conv6 = slim.conv2d(conv5,512,scope='conv6',normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params)
+                pool4 = slim.max_pool2d(conv6,scope='pool4')
+
+                conv7 = slim.conv2d(pool4,512,padding='SAME',scope='conv7')
+
+                features = tf.squeeze(conv7, axis=1, name='features')
+
+                conv1_trim = tf.constant(2 * (3// 2),
+                                         dtype=tf.int32,
+                                      name='conv1_trim')
+
+
+                after_pool1 = tf.floor_div(widths, 2)
+                after_pool2 = tf.floor_div(after_pool1, 2)
+                after_pool3 = after_pool2
+                after_pool4 = after_pool3
+                after_conv7 = after_pool4-conv1_trim
+
+                sequence_length = tf.reshape(after_conv7, [-1], name='seq_len')
                 sequence_length = tf.maximum(sequence_length,1)
 
                 return features, sequence_length
@@ -129,7 +170,7 @@ class CTC_Model():
         return rnn_output_stack,enc_state
 
 
-    def rnn_layers(self,features, sequence_length, num_classes):
+    def rnn_layers(self,features, sequence_length, num_classes,units):
 
         logit_activation = tf.nn.relu
         weight_initializer = tf.contrib.layers.variance_scaling_initializer()
@@ -138,8 +179,8 @@ class CTC_Model():
         with tf.variable_scope("rnn"):
 
             rnn_sequence = tf.transpose(features, perm=[1, 0, 2], name='time_major')
-            rnn1 ,_ = self.rnn_layer(rnn_sequence, sequence_length, config.RNN_UNITS, 'bdrnn1')
-            rnn2 ,_= self.rnn_layer(rnn1, sequence_length, config.RNN_UNITS, 'bdrnn2')
+            rnn1 ,_ = self.rnn_layer(rnn_sequence, sequence_length, units, 'bdrnn1')
+            rnn2 ,_= self.rnn_layer(rnn1, sequence_length, units, 'bdrnn2')
             rnn_logits = tf.layers.dense(rnn2, num_classes + 1,
                                          activation=logit_activation,
                                          kernel_initializer=weight_initializer,
@@ -151,7 +192,13 @@ class CTC_Model():
 
     def crnn(self,inputs, width,is_training):
         features, sequence_length = self.base_conv_layer(inputs, width,is_training)
-        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT))
+        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT),config.RNN_UNITS)
+        return logits ,sequence_length
+
+
+    def crnn2(self,inputs, width,is_training):
+        features, sequence_length = self.base_conv_layer2(inputs, width,is_training)
+        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT),512)
         return logits ,sequence_length
 
 
@@ -195,7 +242,7 @@ class CTC_Model():
             label_length = tf.placeholder(tf.int32,[None])
             is_training = tf.placeholder(tf.bool)
 
-            logits, sequence_length =self.crnn(inputs,width,is_training)
+            logits, sequence_length =self.crnn2(inputs,width,is_training)
 
             loss = self.ctc_loss_layer(logits, sequence_label, sequence_length)
 
@@ -391,11 +438,13 @@ class CTC_Model():
 
 #
 #
-# model = CTC_Model()
+
+model = CTC_Model()
 # # # model.train()
-# model.output('/home/wzh/ocr/0_test.png')
+model.output('/home/wzh/ocr/0_test.png')
 # # model.analyze_result('/home/wzh/analyze')
 
+# inputs = tf.Variable(tf.zeros([1,32,120,1]))
 
 
 
