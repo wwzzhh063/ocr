@@ -12,6 +12,8 @@ from tqdm import tqdm
 import numpy as np
 from config import Config as config
 
+
+
 class Bbox(object):
     def __init__(self,bbox,label,classes):
         self.bbox = bbox
@@ -28,6 +30,8 @@ class Bbox(object):
             self.bottom = max(bbox[5],bbox[7])
             self.left = min(bbox[0],bbox[6])
             self.right = min(bbox[2],bbox[4])
+
+
 
 class Img_ALL_BBox(object):
     def __init__(self,img):
@@ -50,7 +54,10 @@ class Img_ALL_BBox(object):
             biger_img = self.img[top:bottom+1,left:right+1,...]
 
             label = print.label+hand.label
-            cv2.imwrite(path+str(num)+'_'+str(i)+'_'+label+'.jpg',biger_img)
+            if 'None' not in label:                     #test----------------------------------------
+                cv2.imwrite(path+str(num)+'_'+str(i)+'_'+label+'.jpg',biger_img)
+
+
 
 def find_labels(name,j):
     name = name.split('.')[0]
@@ -80,7 +87,7 @@ def set_xml_data(path):
         p = ParseXml(big_img_xml)
         img_name_, class_list, bbox_list,jpg_or_JPG = p.get_bbox_class()
         big_img_path = os.path.join('/home/wzh/data/img',big_img_xml.split('/')[-1].replace('xml',jpg_or_JPG))
-        all_bbox_img = Img_ALL_BBox(cv2.imread(big_img_path))           #一张图片中的所有box
+        all_bbox_img = Img_ALL_BBox(cv2.imread(big_img_path))           #一张图片中的所有box   tetst---------------------------------
         all_bbox_img.img_path = big_img_path
         img_name.append(img_name_)
         j,path = find_labels(img_name_,j)                 #找到对应的切分图片的地址
@@ -100,6 +107,7 @@ def set_xml_data(path):
                      except:
                          print(img_name_)
                      bbox = Bbox(bbox_list[i],label,classes)
+                     # bbox = Bbox_test(bbox_list[i], label, classes,small_img_xml_path)          #for test!!!!!!!!!!
                      if classes ==1:
                          all_bbox_img.print_word.append(bbox)
                      else:
@@ -294,7 +302,7 @@ if __name__ == '__main__':
         #
         # cv2.imwrite(path,img)
     for i,img_result in tqdm(enumerate(all_img)):
-        img_result.cut_biger_img('/home/wzh/ocr_train_bigger/',i)
+        img_result.cut_biger_img('/home/wzh/ocr_train/',i)
 
     # img_result = random.sample(all_img,1)[0]
     # img_result.img = cv2.imread(img_result.img_path)

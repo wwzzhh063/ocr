@@ -13,7 +13,7 @@ from utils import DataSet
 import random
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES']='1'
+os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 
 
@@ -21,7 +21,6 @@ os.environ['CUDA_VISIBLE_DEVICES']='1'
 class CTC_Model():
 
     def __init__(self):
-        print('a')
         self.a = 1
 
     def base_conv_layer(self,inputs,widths,is_training):
@@ -253,7 +252,7 @@ class CTC_Model():
             #     optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
             tf.train.MomentumOptimizer
             # optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
-            optimizer = tf.train.MomentumOptimizer(config.LEARN_RATE).minimize(loss)
+            optimizer = tf.train.MomentumOptimizer(config.LEARN_RATE,0.9).minimize(loss)
 
             dataset = utils.DataSet()
             train_generator = dataset.train_data_generator(config.BATCH_SIZE)
@@ -277,7 +276,7 @@ class CTC_Model():
                 writer_val = tf.summary.FileWriter(ctc_val_path, sess.graph)
 
                 while True:
-                    images, labels, width_, length_= next(train_generator)
+                    images, labels, width_, length_,epoch= next(train_generator)
 
                     feeddict = {inputs: images, sequence_label: (labels[0], labels[1], labels[2]), width: width_,label_length:length_,is_training:True}
 
@@ -305,6 +304,7 @@ class CTC_Model():
                         print('train_seq_acc{}'.format(train_sequence_error))
                         print('val_label_acc{}'.format(label_error_val))
                         print('val_seq_acc{}'.format(sequence_error_val))
+                        print('epoch{}'.format(epoch))
                         print('----------------------------------------------------------------------------------------------------------------')
                     #
                     if i % 100 == 0:
@@ -439,9 +439,9 @@ class CTC_Model():
 #
 #
 
-model = CTC_Model()
+# model = CTC_Model()
 # # # model.train()
-model.output('/home/wzh/ocr/0_test.png')
+# model.output('/home/wzh/ocr/0.jpg')
 # # model.analyze_result('/home/wzh/analyze')
 
 # inputs = tf.Variable(tf.zeros([1,32,120,1]))

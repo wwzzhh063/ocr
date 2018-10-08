@@ -20,7 +20,7 @@ def label_replace(label):
     label = label.replace('６','6')
     label = label.replace('３','3')
     label = label.replace('７','7')
-    label = label.replace('＋','+')
+    label = label.replace('－','-')
     label = label.replace('　','')
     label = label.replace('？','?')
     label = label.replace('，',',')
@@ -77,7 +77,7 @@ def read_label(xml):
 
 def create_dataet():
     num = 0
-    for i in tqdm(glob('/home/wzh/suanshi_val/*')):
+    for i in tqdm(glob('/home/wzh/suanshi_train/*')):
 
         for xml in glob(os.path.join(i, 'outputs/*')):
             other = [path for path in glob(os.path.join(i, '*')) if 'outputs' not in path][0]
@@ -87,7 +87,7 @@ def create_dataet():
             path = os.path.join(other, name)
 
             if label != 'None' and label != 'Good' and label != '':
-                subprocess.call(['cp', path, '/home/wzh/ocr_val/' + str(num) + '_' + label + '.jpg'])
+                subprocess.call(['cp', path, '/home/wzh/ocr_train/' + str(num) + '_' + label + '.jpg'])
 
                 num = num + 1
 
@@ -95,7 +95,7 @@ def create_dataet():
     # onthot.write(str(list))
     # print(list)
 
-# create_dataet()
+create_dataet()
 
 
 

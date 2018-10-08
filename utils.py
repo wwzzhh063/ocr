@@ -27,6 +27,8 @@ def create_input(image_list,max_wide,wide_list):
 def image_normal(image):
     if image.shape[0] != 32:
         image = cv2.resize(image, (int(image.shape[1] / image.shape[0] * 32), 32))
+    if image.shape[1] < 10:
+        image = cv2.resize(image,(10, 32))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     image = image / 255 * 2 - 1
     return image
@@ -65,7 +67,10 @@ class DataSet(object):
 
         shape = np.array([batch_size,max_length],dtype=np.int32)
         index = np.array(index,dtype=np.int32)
-        value = np.array(value,dtype=np.int32)
+        try:
+            value = np.array(value,dtype=np.int32)
+        except:
+            print(label_list)
 
         return [index,value,shape]
 
@@ -127,8 +132,8 @@ class DataSet(object):
             images_path = all_data[step*batch_size:(step+1)*batch_size]
             images, wides = self.get_imges(images_path)
             labels, length = self.get_labels(images_path)
-            if wides[0]<10:
-                print(images_path)
+            # if wides[0]<10:
+            #     print(images_path)
 
             step = step+1
 
