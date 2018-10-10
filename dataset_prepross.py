@@ -75,17 +75,60 @@ def img_normal(img,img_path):
     (_, thresh) = cv2.threshold(gradient, 40, 255, cv2.THRESH_BINARY)
     # thresh = 255-thresh
 
-    cv2.imwrite(img_path.replace('.', '_1.'), thresh)
-    cv2.imwrite(img_path.replace('.', '_2.'), canny)
+    # cv2.imwrite(img_path.replace('.', '_1.'), thresh)
+    # cv2.imwrite(img_path.replace('.', '_2.'), canny)
 
     return thresh,canny
 
-for i in tqdm(glob('/home/wzh/img/*')):
-    try:
-        img = cv2.imread(i)
-        img1,img2 = img_normal(img.copy(),i)
-        img3,img4 = preprocess(img.copy(),img1,img2)
-        cv2.imwrite(i.replace('.', '_3.'), img3)
-        cv2.imwrite(i.replace('.', '_4.'), img4)
-    except:
-        print(i)
+def write_img():
+    for i in tqdm(glob('/home/wzh/img/*')):
+        try:
+            img = cv2.imread(i)
+            img1,img2 = img_normal(img.copy(),i)
+            img3,img4 = preprocess(img.copy(),img1,img2)
+            cv2.imwrite(i.replace('.', '_3.'), img3)
+            cv2.imwrite(i.replace('.', '_4.'), img4)
+        except:
+            print(i)
+
+def hough(img,img2):
+    h,w = img.shape
+    centre_y,centre_x = h/2,w/2
+
+    # cv2.imwrite("b.jpg",img)
+    img = np.asarray(img,np.uint8)
+    lines = cv2.HoughLines(img,1,np.pi/180,750)
+    lines2 = cv2.HoughLinesP(img,1,np.pi/180,80,200,15)
+
+    for i ,line in tqdm(enumerate(lines2)):
+        print_line(line[0],img2)
+
+    cv2.imwrite("a.jpg",img2)
+    print("a")
+
+def print_line(line,img):
+    rho = line[0]  # 第一个元素是距离rho
+    theta = line[1]  # 第二个元素是角度theta
+    if (theta < (np.pi / 4.)) or (theta > (3. * np.pi / 4.0)):  # 垂直直线
+        # 该直线与第一行的交点
+        pt1 = (int(rho / np.cos(theta)), 0)
+        # 该直线与最后一行的焦点
+        pt2 = (int((rho - img.shape[0] * np.sin(theta)) / np.cos(theta)), img.shape[0])
+        # 绘制一条白线
+        cv2.line(img, pt1, pt2, (0,0,255),2)
+    else:  # 水平直线
+        # 该直线与第一列的交点
+        pt1 = (0, int(rho / np.sin(theta)))
+        # 该直线与最后一列的交点
+        pt2 = (img.shape[1], int((rho - img.shape[1] * np.cos(theta)) / np.sin(theta)))
+        # 绘制一条直线
+        cv2.line(img, pt1, pt2, (0,0,255), 2)
+
+
+path = 'aa.jpeg'
+img = cv2.imread(path)
+img1, img2 = img_normal(img.copy(), path)
+img3, img4 = preprocess(img.copy(), img1, img2)
+cv2.imwrite(path.replace('.', '_3.'), img3)
+cv2.imwrite(path.replace('.', '_4.'), img4)
+

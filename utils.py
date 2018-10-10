@@ -10,6 +10,8 @@ import numpy as np
 import os
 import random
 from config import Config as config
+from tqdm import tqdm
+import matplotlib.pyplot as plot
 
 ont_hot = config.ONE_HOT
 
@@ -39,6 +41,7 @@ def pre_to_output(sentence):
     result = ''.join(list(map(lambda x: decode.get(x), sentence[0])))
 
     return result
+
 
 
 class DataSet(object):
@@ -154,6 +157,64 @@ class DataSet(object):
             i = i+1
         return all_val_data
 
+    def analy_data(self):
+        all_num = []
+        avg_num = 0
+        all_len_wid = []
+        avg_len_wid = 0
+        all_font_len = []
+        avg_font_len = 0
+        for data in tqdm(self.all_data):
+            img = cv2.imread(data)
+            label = data.split('_')[-1].replace('.jpg', '')
+            label = label.replace('.png', '')
+            label_num = len(label)
+            avg_num = label_num+avg_num
+            all_num.append(label_num)
+            img = cv2.resize(img,(int(img.shape[1]/img.shape[0]*32),32))
+            len_wid = img.shape[1]/img.shape[0]
+            avg_len_wid = avg_len_wid+len_wid
+            all_len_wid.append(len_wid)
+            font_len = img.shape[1]/label_num
+            avg_font_len = avg_font_len + font_len
+            all_font_len.append(font_len)
+
+        avg_num = avg_num/len(all_num)
+        avg_len_wid = avg_len_wid/len(all_num)
+        avg_font_len = avg_font_len/len(all_num)
+
+        plot.figure(figsize=(40, 10), dpi=80)  # 绘制直方图
+        plot.xticks(fontsize=40)
+        plot.yticks(fontsize=40)
+        plot.hist(all_num, bins=50, normed=0, facecolor="blue", edgecolor="black", alpha=0.7)
+        plot.savefig('all_num_analy', bbox_inches='tight')
+
+        plot.figure(figsize=(40, 10), dpi=80)
+        plot.xticks(fontsize=40)
+        plot.yticks(fontsize=40)
+        plot.hist(all_len_wid, bins=50, normed=0, facecolor="blue", edgecolor="black", alpha=0.7)
+        plot.savefig('all_len_wid_analy', bbox_inches='tight')
+
+        plot.figure(figsize=(40, 10), dpi=80)  # 绘制直方图
+        plot.xticks(fontsize=40)
+        plot.yticks(fontsize=40)
+        plot.hist(all_font_len, bins=50, normed=0, facecolor="blue", edgecolor="black", alpha=0.7)
+        plot.savefig('all_font_len_analy', bbox_inches='tight')
+
+
+
+
+        print(avg_num)
+        print(avg_len_wid)
+        print(avg_font_len)
+
+        plot.show()
+
+
+
+
+
+
 
 # def fuck():
 #     val_data = glob(os.path.join(config.VAL_DATA, '*'))
@@ -192,3 +253,6 @@ class DataSet(object):
 #
 # images, labels, wides,length = dataset.create_val_data()
 # print('a')
+
+# dataset = DataSet()
+# dataset.analy_data()

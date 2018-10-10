@@ -95,7 +95,7 @@ def create_dataet():
     # onthot.write(str(list))
     # print(list)
 
-create_dataet()
+# create_dataet()
 
 
 
