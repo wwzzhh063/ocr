@@ -1,7 +1,0 @@
-easydict
-scipy
-numpy
-opencv_python
-Cython
-Pillow
-PyYAML

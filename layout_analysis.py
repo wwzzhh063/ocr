@@ -18,7 +18,10 @@ class Layoout_Row(object):
 
 class Layput_Column(object):
     def __init__(self):
-        pass
+        self.print = []
+        self.hand = []
+        self.hand_below = []
+
 
 
 class Layput_Analysis(object):
