@@ -5,13 +5,13 @@ class Config(object):
 
     MNIST_PATH = os.environ['HOME']+ '/mnist'
 
-    CLEAN_DATA =  os.environ['HOME']+'/clean_data'
+    CLEAN_DATA =  os.environ['HOME']+'/ocr_train'
 
     NOISE_DATA =  os.environ['HOME']+'/noise_data'
 
-    VAL_DATA = './test_data'
+    VAL_DATA = os.environ['HOME']+'/ocr_val'
 
-    NUM = '0123456789+-×÷()='
+    NUM = '3890.(×2751)÷4-+*~6='
 
     ONE_HOT = {'<GO>': 0, '<EOS>': 1, '<UNK>': 2, '<PAD>': 3}
 
@@ -39,7 +39,7 @@ class Config(object):
 
     SHUFFLE = [0,640,3200,3840,4160,4480,9398]
 
-    BATCH_SIZE = 32
+    BATCH_SIZE = 2
 
     CLASS_NUM = 2682
 
@@ -49,6 +49,6 @@ class Config(object):
 
     A_UNITS = 256
 
-
-print(Config.ONE_HOT)
+#
+# print(Config.ONE_HOT)
 

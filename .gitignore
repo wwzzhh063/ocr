@@ -5,5 +5,13 @@ test_data
 Fonts
 test.py
 .idea
+ctc_train_path
+ctc_val_path
 model_attention
-_pycache_
+__pycache__
+img
+*.jpg
+*.png
+*.JPG
+*.jpeg
+Arithmetic_Func_detection_for_CTPN_v2

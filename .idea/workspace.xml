@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e215c16c-3fce-4e13-857a-fcd5e9473ace" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -12,8 +15,8 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/ocr$utils.coverage" NAME="utils Coverage Results" MODIFIED="1535620133048" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$model.coverage" NAME="model Coverage Results" MODIFIED="1536303702731" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$utils.coverage" NAME="utils Coverage Results" MODIFIED="1539685161704" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$model.coverage" NAME="model Coverage Results" MODIFIED="1539685194586" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$test.coverage" NAME="test Coverage Results" MODIFIED="1535714620005" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$minst_seeable.coverage" NAME="minst_seeable Coverage Results" MODIFIED="1535426913409" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$mnist_to_num.coverage" NAME="mnist_to_num Coverage Results" MODIFIED="1535965040724" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -90,17 +93,17 @@
     <session id="1037738134">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.open.time.0" value="2" />
+          <entry key="project.open.time.0" value="3" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.5" value="2" />
           <entry key="project.open.time.6" value="1" />
-          <entry key="project.opened" value="6" />
+          <entry key="project.opened" value="7" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="gitignore" value="105" />
-          <entry key="py" value="2887" />
+          <entry key="py" value="3028" />
           <entry key="txt" value="2" />
         </counts>
       </usages-collector>
@@ -108,14 +111,14 @@
         <counts>
           <entry key="PLAIN_TEXT" value="76" />
           <entry key="Properties" value="31" />
-          <entry key="Python" value="2887" />
+          <entry key="Python" value="3028" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="gitignore" value="2" />
           <entry key="png" value="4" />
-          <entry key="py" value="22" />
+          <entry key="py" value="25" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
@@ -123,10 +126,11 @@
           <entry key="Image" value="4" />
           <entry key="PLAIN_TEXT" value="1" />
           <entry key="Properties" value="1" />
-          <entry key="Python" value="22" />
+          <entry key="Python" value="25" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.js.language.service.starts" />
+      <usages-collector id="statistics.vcs.git.usages" />
     </session>
   </component>
   <component name="FileEditorManager">
@@ -134,8 +138,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="432">
-              <caret line="296" column="101" lean-forward="true" selection-start-line="296" selection-start-column="101" selection-end-line="296" selection-end-column="101" />
+            <state relative-caret-position="24">
+              <caret line="107" lean-forward="true" selection-start-line="107" selection-end-line="107" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -144,10 +148,37 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/contrib/seq2seq/python/ops/helper.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="360">
+              <caret line="260" column="6" selection-start-line="260" selection-start-column="6" selection-end-line="260" selection-end-column="6" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/ops/ctc_ops.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="360">
+              <caret line="190" column="4" selection-start-line="190" selection-start-column="4" selection-end-line="190" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-26704">
+              <caret line="99" column="56" selection-start-line="99" selection-start-column="11" selection-end-line="99" selection-end-column="78" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="145">
-              <caret line="5" column="7" selection-start-line="5" selection-start-column="7" selection-end-line="5" selection-end-column="7" />
+            <state relative-caret-position="464">
+              <caret line="16" column="31" selection-start-line="16" selection-start-column="31" selection-end-line="16" selection-end-column="31" />
             </state>
           </provider>
         </entry>
@@ -167,8 +198,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="440">
-              <caret line="33" column="20" lean-forward="true" selection-start-line="33" selection-start-column="20" selection-end-line="33" selection-end-column="20" />
+            <state relative-caret-position="484">
+              <caret line="41" column="4" selection-start-line="41" selection-start-column="4" selection-end-line="41" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -176,8 +207,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="406">
-              <caret line="33" column="44" selection-start-line="33" selection-start-column="34" selection-end-line="33" selection-end-column="44" />
+            <state relative-caret-position="548">
+              <caret line="133" selection-start-line="133" selection-end-line="134" selection-end-column="26" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -188,7 +219,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/minst_seeable.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="667">
+            <state relative-caret-position="464">
               <caret line="23" selection-start-line="23" selection-end-line="23" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
@@ -218,6 +249,11 @@
       <find>ctc_greedy_decoder</find>
       <find>tf.sparse_to_dense</find>
       <find>tf.nn.ctc_greedy_decoder</find>
+      <find>BATCH_SIZE</find>
+      <find>saver</find>
+      <find>analyze_result</find>
+      <find>val_label_list</find>
+      <find>val_labels_input</find>
     </findStrings>
     <replaceStrings>
       <replace>background</replace>
@@ -233,10 +269,10 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/minst_seeable.py" />
-        <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/mnist_to_num.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/utils.py" />
         <option value="$PROJECT_DIR$/model.py" />
       </list>
@@ -260,7 +296,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -272,6 +307,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -420,9 +456,9 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.model" />
+        <item itemvalue="Python.utils" />
         <item itemvalue="Python.mnist_to_num" />
         <item itemvalue="Python.test" />
-        <item itemvalue="Python.utils" />
         <item itemvalue="Python.config" />
       </list>
     </recent_temporary>
@@ -441,15 +477,15 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="130" y="-8" width="3710" height="2168" extended-state="6" />
+    <frame x="129" y="13" width="3712" height="2148" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21700718" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21949199" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3296875" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.29898557" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.29898557" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39935932" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -673,10 +709,17 @@
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/densenet.py" />
-    <entry file="file://$PROJECT_DIR$/.gitignore">
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/ops/array_ops.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="5" column="7" selection-start-line="5" selection-start-column="7" selection-end-line="5" selection-end-column="7" />
+        <state relative-caret-position="423">
+          <caret line="2156" selection-start-line="2156" selection-end-line="2156" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2018.2/system/python_stubs/-1503419192/numpy/core/multiarray.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="336">
+          <caret line="53" column="4" selection-start-line="53" selection-start-column="4" selection-end-line="53" selection-end-column="4" />
         </state>
       </provider>
     </entry>
@@ -692,7 +735,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/minst_seeable.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="667">
+        <state relative-caret-position="464">
           <caret line="23" selection-start-line="23" selection-end-line="23" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
@@ -700,31 +743,45 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/ops/array_ops.py">
+    <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="423">
-          <caret line="2156" selection-start-line="2156" selection-end-line="2156" />
+        <state relative-caret-position="464">
+          <caret line="16" column="31" selection-start-line="16" selection-start-column="31" selection-end-line="16" selection-end-column="31" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2018.2/system/python_stubs/-1503419192/numpy/core/multiarray.py">
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="53" column="4" selection-start-line="53" selection-start-column="4" selection-end-line="53" selection-end-column="4" />
+        <state relative-caret-position="-26704">
+          <caret line="99" column="56" selection-start-line="99" selection-start-column="11" selection-end-line="99" selection-end-column="78" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/ops/ctc_ops.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="190" column="4" selection-start-line="190" selection-start-column="4" selection-end-line="190" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/contrib/seq2seq/python/ops/helper.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="260" column="6" selection-start-line="260" selection-start-column="6" selection-end-line="260" selection-end-column="6" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="440">
-          <caret line="33" column="20" lean-forward="true" selection-start-line="33" selection-start-column="20" selection-end-line="33" selection-end-column="20" />
+        <state relative-caret-position="484">
+          <caret line="41" column="4" selection-start-line="41" selection-start-column="4" selection-end-line="41" selection-end-column="4" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="406">
-          <caret line="33" column="44" selection-start-line="33" selection-start-column="34" selection-end-line="33" selection-end-column="44" />
+        <state relative-caret-position="548">
+          <caret line="133" selection-start-line="133" selection-end-line="134" selection-end-column="26" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
@@ -733,8 +790,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="296" column="101" lean-forward="true" selection-start-line="296" selection-start-column="101" selection-end-line="296" selection-end-column="101" />
+        <state relative-caret-position="24">
+          <caret line="107" lean-forward="true" selection-start-line="107" selection-end-line="107" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>

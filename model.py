@@ -12,6 +12,7 @@ from tensorflow.contrib.seq2seq import ScheduledEmbeddingTrainingHelper
 from utils import DataSet
 from tensorflow.contrib import layers
 from tensorflow.contrib import seq2seq
+import random
 
 
 class CTC_Model():
@@ -26,7 +27,7 @@ class CTC_Model():
 
         with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
                             normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
-            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,2],stride=[2,2],padding='valid'):
+            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,2],stride=[2,1],padding='valid'):
 
                 conv1 = slim.conv2d(inputs,64,padding='valid',scope='conv1')
                 conv2 = slim.conv2d(conv1,64,scope='conv2')
@@ -45,19 +46,6 @@ class CTC_Model():
                 pool4 = slim.max_pool2d(conv8,kernel_size=[3,1],stride=[3,1],scope='pool4')
 
                 cnn_features = tf.squeeze(pool4, axis=1, name='features')
-
-                conv1_trim = tf.constant(2 * (3// 2),
-                                         dtype=tf.int32,
-                                         name='conv1_trim')
-
-                #
-                # after_conv1 = widths - conv1_trim
-                # after_pool1 = tf.floor_div(after_conv1, 2)
-                # after_pool2 = after_pool1 -1
-                # after_pool3 = after_pool2 -1
-                # after_pool4 = after_pool3
-                #
-                # sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
 
                 return cnn_features
 
@@ -118,30 +106,6 @@ class CTC_Model():
         return loss,pred_decode_result
 
 
-    def ctc_error(self,logits,sequence_length,sequence_label,label_length,greedy_decoder=True):
-        logits = tf.transpose(logits,perm=[1,0,2])
-        if greedy_decoder:
-            predictions, _ = tf.nn.ctc_greedy_decoder(logits,sequence_length,merge_repeated=True)
-        else:
-
-            predictions, _ = tf.nn.ctc_beam_search_decoder(logits,sequence_length,beam_width=128,top_paths=1,merge_repeated=True)
-
-
-        hypothesis = tf.cast(predictions[0], tf.int32)  # for edit_distance
-        label_errors = tf.edit_distance(hypothesis, sequence_label, normalize=False)
-        sequence_errors = tf.count_nonzero(label_errors, axis=0)
-        total_label_error = tf.reduce_sum(label_errors)
-        total_labels = tf.reduce_sum(label_length)
-        label_error = tf.truediv(total_label_error,
-                                 tf.cast(total_labels, tf.float32),
-                                 name='label_error')
-        sequence_error = tf.truediv(tf.cast(sequence_errors, tf.int32),
-                                    tf.shape(label_length)[0],
-                                    name='sequence_error')
-        tf.summary.scalar('label_error',label_error)
-        tf.summary.scalar('sequence_error',sequence_error)
-        return 1-label_error,1-sequence_error
-
 
 
 
@@ -175,85 +139,18 @@ class CTC_Model():
         print(result)
 
 
-    def analyze_result(self,paths):
-        image_paths = sorted(glob(os.path.join(paths,'*')))
-        image, wides = DataSet().get_imges(image_paths)
-        def getlab(x):
-            result = x.split('_')[-1].replace('.jpg','')
-            result = result.replace('.png','')
-            return result
-
-        labels = map(getlab,image_paths)
-
-        inputs = tf.placeholder(tf.float32, [None, 32, None, 1])
-        width = tf.placeholder(tf.int32, [None])
-        is_training = tf.placeholder(tf.bool)
-        logits, sequence_length = self.crnn(inputs, width, is_training)
-
-        decoder, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
-        decoder = decoder[0]
-
-        dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
-                                           sparse_values=decoder.values,default_value = -1)
-        with tf.Session() as sess:
-            saver = tf.train.Saver(tf.global_variables())
-            saver.restore(sess, config.MODEL_SAVE)
-
-            result = []
-
-            if image.shape[0] <= config.BATCH_SIZE:
-                sentence = sess.run(dense_decoder, feed_dict={inputs: image, width: wides,is_training:False})
-
-                sentence = sentence.tolist()
-
-                decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
-
-                result.extend(sentence)
-
-            else:
-                index = 0
-                while (index+1)*config.BATCH_SIZE <= image.shape[0]:
-                    if (index+1)*config.BATCH_SIZE > image.shape[0]:
-                        end = image.shape[0]
-                    else:
-                        end = (index+1)*config.BATCH_SIZE
-
-                    sentence = sess.run(dense_decoder, feed_dict={inputs: image[index*config.BATCH_SIZE:end,...], width: wides[index*config.BATCH_SIZE:end,...],is_training:True})
-
-                    sentence = sentence.tolist()
-
-                    decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
-
-                    result.extend(sentence)
-                    index = index+1
-
-
-            result = list(map(lambda y: ''.join(list(map(lambda x:decode.get(x), y))), result))
-
-            result = dict(zip(labels,result))
-
-
-
-        print(result)
 
     def train(self):
         inputs = tf.placeholder(tf.float32, [None, 32, config.IMG_MAXSIZE, 1])
         train_output = tf.placeholder(tf.int64, shape=[None, None], name='target_output')
         target_output = tf.placeholder(tf.int64, shape=[None, None], name='target_output')
-        sequence_label = tf.sparse_placeholder(tf.int32)
         sample_rate = tf.placeholder(tf.float32, shape=[], name='sample_rate')
         is_training = tf.placeholder(dtype=tf.bool)
-
-        #for ctcl_acc
-        sequence_length = tf.placeholder(tf.int32,shape=[config.BATCH_SIZE])
-
 
 
 
         loss,  pred_decode_result = self.build_network(inputs, train_output, target_output,
                                                                             sample_rate,is_training)
-
-        # ctc_label_acc,ctc_val_acc = self.ctc_error(pred_decode_result,sequence_length,sequence_label,sequence_length)
 
         optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
 
@@ -274,7 +171,7 @@ class CTC_Model():
                 saver.restore(sess, config.MODEL_SAVE)
                 print("restore")
 
-            val_image, val_labels_input, val_labels_output, val_label_list = dataset.create_val_data()
+            all_val_data = dataset.create_val_data()
 
 
 
@@ -288,27 +185,18 @@ class CTC_Model():
 
 
                 if i %20 ==0:
+                    val_image, val_labels_input, val_labels_output, val_label_list = random.sample(all_val_data,1)[0]
                     val_labels_input_ = val_labels_input[:config.BATCH_SIZE,...]
                     val_labels_output_ = val_labels_output[:config.BATCH_SIZE,...]
 
 
-
-                    temp1 = np.zeros([config.BATCH_SIZE]) + config.SEQ_MAXSIZE
-                    shape = np.array([config.BATCH_SIZE,config.SEQ_MAXSIZE])
-                    x,y = np.meshgrid(np.arange(0,config.SEQ_MAXSIZE),np.arange(0,config.BATCH_SIZE))
-                    x = x[...,np.newaxis]
-                    y = y[...,np.newaxis]
-                    index = np.concatenate([y,x],-1).reshape([-1,2])
-
                     train_feedict = {inputs: images, train_output: labels_input, target_output: labels_output,
-                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False,sequence_length:temp1,
-                                     sequence_label:(index,labels_output.flatten(),shape)}
+                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False}
 
-                    val_feedict = {inputs: val_image[:32,...], train_output: val_labels_input_, target_output: val_labels_output_,sequence_length: temp1,
-                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False,
-                                   sequence_label:(index,val_labels_output_.flatten(),shape)}
-                    # train_result,loss_,train_ctc_label_acc,train_ctc_val_acc = sess.run([pred_decode_result,loss,ctc_label_acc,ctc_val_acc ],feed_dict=train_feedict)
-                    # val_result,val_ctc_label_acc_,val_ctc_val_acc_ = sess.run([pred_decode_result,ctc_label_acc,ctc_val_acc ],feed_dict=val_feedict)
+                    val_feedict = {inputs: val_image[:32,...], train_output: val_labels_input_, target_output: val_labels_output_,
+                                sample_rate: np.min([1., 0.2 * epoch + 0.2]), is_training: False}
+
+
                     train_result,loss_ = sess.run([pred_decode_result,loss ],feed_dict=train_feedict)
                     val_result = sess.run(pred_decode_result,feed_dict=val_feedict)
 
@@ -331,6 +219,13 @@ class CTC_Model():
                     # print('val_seq_acc{}'.format(val_ctc_val_acc_))
                     print(
                         '----------------------------------------------------------------------------------------------------------------')
+
+                if i % 100 == 0:
+                    saver.save(sess, config.MODEL_SAVE)
+
+
+                # if i%500 == 0:
+                #     for i,val_data in enumerate(all_val_data):
 
 
 

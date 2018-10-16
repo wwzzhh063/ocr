@@ -10,12 +10,13 @@ import numpy as np
 import os
 import random
 from config import Config as config
+from tqdm import tqdm
 
 ont_hot = {'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'+':10,'-':11,'=':12,'×':13,'÷':14,'(':15,')':16}
 
 
 class DataSet(object):
-    def __init__(self,noise_able = True):
+    def __init__(self,noise_able = False):
         clean_data = glob(os.path.join(config.CLEAN_DATA,'*'))
         noise_data = glob(os.path.join(config.NOISE_DATA,'*'))
         self.val_data = glob(os.path.join(config.VAL_DATA,'*'))
@@ -118,10 +119,23 @@ class DataSet(object):
             yield images,target_input, target_out,label_list,epoch
 
     def create_val_data(self):
+
         val_data = self.val_data
-        images,  _ = self.get_imges(val_data)
-        target_input, target_out, label_list = self.get_labels(val_data)
-        return images,target_input, target_out,label_list
+        all_val_data = []
+        i = 0
+        while i * config.BATCH_SIZE < len(val_data):
+            if (i + 1) * config.BATCH_SIZE > len(val_data):
+                end = len(val_data)
+            else:
+                end = (i + 1) * config.BATCH_SIZE
+            images, _ = self.get_imges(val_data[i*config.BATCH_SIZE:end])
+            try:
+                target_input, target_out, label_list = self.get_labels(val_data[i*config.BATCH_SIZE:end])
+            except:
+                print('a')
+            all_val_data.append((images, target_input, target_out, label_list))
+            i = i + 1
+        return all_val_data
 
 
 # def fuck():
@@ -159,3 +173,12 @@ class DataSet(object):
 #
 # images, labels, wides,length = dataset.create_val_data()
 # print('a')
+
+# one_hot = []
+# for path in tqdm(glob(os.path.join(config.CLEAN_DATA,'*'))):
+#     label = path.split('_')[-1]
+#     for char in label:
+#         one_hot.append(char)
+#
+# one_hot = list(set(one_hot))
+# print(''.join(one_hot))
