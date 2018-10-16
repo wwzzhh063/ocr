@@ -2,14 +2,26 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e215c16c-3fce-4e13-857a-fcd5e9473ace" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/3.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/aa.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dataset_prepross.py" beforeDir="false" afterPath="$PROJECT_DIR$/dataset_prepross.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/ctpn/text.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/ctpn/text.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/fast_rcnn/nms_wrapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/fast_rcnn/nms_wrapper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/bbox.c" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/bbox.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/bbox.cpython-35m-x86_64-linux-gnu.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/bbox.cpython-35m-x86_64-linux-gnu.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/bbox.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/bbox.pyx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/blob.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/blob.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/cython_nms.c" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/cython_nms.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/cython_nms.cpython-35m-x86_64-linux-gnu.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/cython_nms.cpython-35m-x86_64-linux-gnu.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/gpu_nms.c" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/gpu_nms.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/make.sh" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/make.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/utils/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cutdata.py" beforeDir="false" afterPath="$PROJECT_DIR$/cutdata.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/easytest.py" beforeDir="false" afterPath="$PROJECT_DIR$/easytest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/from_xml_read_label.py" beforeDir="false" afterPath="$PROJECT_DIR$/from_xml_read_label.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inference.py" beforeDir="false" afterPath="$PROJECT_DIR$/inference.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/layout_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/layout_analysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/log.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipline.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipline.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
@@ -27,18 +39,19 @@
     <SUITE FILE_PATH="coverage/ocr$easytest__1_.coverage" NAME="easytest (1) Coverage Results" MODIFIED="1537589454618" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$minst_seeable.coverage" NAME="minst_seeable Coverage Results" MODIFIED="1535426913409" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$mnist_to_num.coverage" NAME="mnist_to_num Coverage Results" MODIFIED="1535965040724" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$config.coverage" NAME="config Coverage Results" MODIFIED="1535619293782" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$config.coverage" NAME="config Coverage Results" MODIFIED="1539680010586" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$common_shapes.coverage" NAME="common_shapes Coverage Results" MODIFIED="1536546294538" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/framework" />
     <SUITE FILE_PATH="coverage/ocr$run.coverage" NAME="run Coverage Results" MODIFIED="1537452853530" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v1/ctpn" />
-    <SUITE FILE_PATH="coverage/ocr$easytest.coverage" NAME="easytest Coverage Results" MODIFIED="1539148907420" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$model.coverage" NAME="model Coverage Results" MODIFIED="1537707630870" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$utils.coverage" NAME="utils Coverage Results" MODIFIED="1538994347342" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$pipline.coverage" NAME="pipline Coverage Results" MODIFIED="1539149361997" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$easytest.coverage" NAME="easytest Coverage Results" MODIFIED="1539665969430" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$nms_wrapper.coverage" NAME="nms_wrapper Coverage Results" MODIFIED="1539352103738" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/fast_rcnn" />
+    <SUITE FILE_PATH="coverage/ocr$model.coverage" NAME="model Coverage Results" MODIFIED="1539668136385" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$utils.coverage" NAME="utils Coverage Results" MODIFIED="1539677438684" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$pipline.coverage" NAME="pipline Coverage Results" MODIFIED="1539680034001" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$pydevd.coverage" NAME="pydevd Coverage Results" MODIFIED="1537530301313" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_HOME_DIR$/helpers/pydev" />
     <SUITE FILE_PATH="coverage/ocr$websever.coverage" NAME="websever Coverage Results" MODIFIED="1537925696741" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$inference.coverage" NAME="inference Coverage Results" MODIFIED="1539079460757" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$inference.coverage" NAME="inference Coverage Results" MODIFIED="1539661086892" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$from_xml_read_label.coverage" NAME="from_xml_read_label Coverage Results" MODIFIED="1537702880851" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$cutdata.coverage" NAME="cutdata Coverage Results" MODIFIED="1537347759297" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$cutdata.coverage" NAME="cutdata Coverage Results" MODIFIED="1539662543573" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FUSProjectUsageTrigger">
     <session id="-1849233104">
@@ -116,58 +129,60 @@
           <entry key="project.open.time.1" value="3" />
           <entry key="project.open.time.10" value="1" />
           <entry key="project.open.time.11" value="1" />
+          <entry key="project.open.time.12" value="1" />
           <entry key="project.open.time.19" value="1" />
           <entry key="project.open.time.5" value="10" />
-          <entry key="project.open.time.6" value="12" />
+          <entry key="project.open.time.6" value="13" />
           <entry key="project.open.time.7" value="2" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="37" />
+          <entry key="project.opened" value="39" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="47" />
-          <entry key="gitignore" value="200" />
-          <entry key="py" value="24973" />
+          <entry key="gitignore" value="202" />
+          <entry key="py" value="28002" />
           <entry key="txt" value="2" />
-          <entry key="yml" value="4" />
+          <entry key="yml" value="10" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="218" />
+          <entry key="PLAIN_TEXT" value="220" />
           <entry key="Properties" value="31" />
-          <entry key="Python" value="24973" />
-          <entry key="YAML" value="4" />
+          <entry key="Python" value="28002" />
+          <entry key="YAML" value="10" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="JPG" value="27" />
-          <entry key="checkpoint" value="2" />
-          <entry key="gitignore" value="9" />
+          <entry key="JPG" value="29" />
+          <entry key="Makefile" value="1" />
+          <entry key="checkpoint" value="3" />
+          <entry key="gitignore" value="10" />
           <entry key="jpeg" value="31" />
-          <entry key="jpg" value="149" />
+          <entry key="jpg" value="154" />
           <entry key="onthot" value="1" />
-          <entry key="png" value="20" />
-          <entry key="py" value="247" />
+          <entry key="png" value="25" />
+          <entry key="py" value="280" />
           <entry key="pyi" value="1" />
           <entry key="pyx" value="2" />
           <entry key="sh" value="1" />
-          <entry key="txt" value="6" />
-          <entry key="yml" value="1" />
+          <entry key="txt" value="9" />
+          <entry key="yml" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Cython" value="2" />
-          <entry key="Image" value="227" />
-          <entry key="PLAIN_TEXT" value="18" />
+          <entry key="Image" value="239" />
+          <entry key="PLAIN_TEXT" value="24" />
           <entry key="Properties" value="1" />
-          <entry key="Python" value="247" />
+          <entry key="Python" value="280" />
           <entry key="PythonStub" value="1" />
-          <entry key="YAML" value="1" />
+          <entry key="YAML" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.js.language.service.starts" />
@@ -177,92 +192,15 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/utils.py">
+        <entry file="file://$PROJECT_DIR$/layout_analysis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="116">
-              <caret line="25" lean-forward="true" selection-start-line="25" selection-end-line="25" />
+            <state relative-caret-position="450">
+              <caret line="20" column="12" selection-start-line="20" selection-start-column="12" selection-end-line="20" selection-end-column="12" />
               <folding>
-                <element signature="e#0#9#0" expanded="true" />
-                <marker date="1539055855560" expanded="true" signature="1144:1147" ph="..." />
-                <marker date="1539055855560" expanded="true" signature="6703:6705" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/config.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="15" column="21" selection-start-line="15" selection-start-column="4" selection-end-line="15" selection-end-column="21" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/inference.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4176">
-              <caret line="144" column="42" lean-forward="true" selection-start-line="144" selection-start-column="42" selection-end-line="144" selection-end-column="42" />
-              <folding>
-                <element signature="e#0#28#0" expanded="true" />
-                <marker date="1539134746630" expanded="true" signature="13751:13952" ph="..." />
-                <marker date="1539134746630" expanded="true" signature="14173:14176" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pipline.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="557">
-              <caret line="632" lean-forward="true" selection-start-line="632" selection-end-line="632" />
-              <folding>
-                <element signature="e#0#12#0" expanded="true" />
-                <marker date="1539149893316" expanded="true" signature="1734:3780" ph="..." />
-                <marker date="1539149893316" expanded="true" signature="4635:4780" ph="..." />
-                <marker date="1539149893316" expanded="true" signature="17189:17264" ph="..." />
-                <marker date="1539149893316" expanded="true" signature="17287:17585" ph="..." />
-                <marker date="1539149893316" expanded="true" signature="17600:20756" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/.gitignore">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="464">
-              <caret line="16" column="36" selection-start-line="16" selection-start-column="36" selection-end-line="16" selection-end-column="36" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tqdm/_tqdm.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="397">
-              <caret line="884" selection-start-line="884" selection-end-line="884" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/easytest.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="87">
-              <caret line="3" selection-start-line="3" selection-end-line="3" selection-end-column="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/Levenshtein/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <folding>
-                <element signature="e#0#36#0" expanded="true" />
+                <element signature="e#0#34#0" expanded="true" />
+                <marker date="1539678866141" expanded="true" signature="307:310" ph="..." />
+                <marker date="1539678866141" expanded="true" signature="338:378" ph="..." />
+                <marker date="1539678866141" expanded="true" signature="483:489" ph="..." />
               </folding>
             </state>
           </provider>
@@ -271,10 +209,84 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6409">
-              <caret line="221" column="39" lean-forward="true" selection-start-line="221" selection-start-column="23" selection-end-line="221" selection-end-column="39" />
+            <state relative-caret-position="537">
+              <caret line="438" selection-start-line="438" selection-end-line="438" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pipline.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="914">
+              <caret line="725" lean-forward="true" selection-start-line="725" selection-end-line="725" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+                <marker date="1539680772660" expanded="true" signature="8022:10113" ph="..." />
+                <marker date="1539680772660" expanded="true" signature="10968:11113" ph="..." />
+                <marker date="1539680772660" expanded="true" signature="23784:23859" ph="..." />
+                <marker date="1539680772660" expanded="true" signature="23882:24180" ph="..." />
+                <marker date="1539680772660" expanded="true" signature="24195:27946" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="493">
+              <caret line="17" column="36" lean-forward="true" selection-start-line="17" selection-start-column="36" selection-end-line="17" selection-end-column="36" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="914">
+              <caret line="324" column="30" selection-start-line="324" selection-start-column="30" selection-end-line="324" selection-end-column="30" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+                <marker date="1539678866097" expanded="true" signature="2398:2401" ph="..." />
+                <marker date="1539678866097" expanded="true" signature="4189:4653" ph="..." />
+                <marker date="1539678866097" expanded="true" signature="8628:8630" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="643">
+              <caret line="40" column="20" lean-forward="true" selection-start-line="40" selection-start-column="20" selection-end-line="40" selection-end-column="20" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cutdata.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="9918">
+              <caret line="342" column="32" selection-start-line="342" selection-start-column="32" selection-end-line="342" selection-end-column="32" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/dataset_prepross.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-2682">
+              <caret line="8" column="29" selection-start-line="8" selection-start-column="29" selection-end-line="8" selection-end-column="29" />
+              <folding>
+                <element signature="e#0#21#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -291,36 +303,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>14-8-5</find>
-      <find>*</find>
-      <find>nms</find>
-      <find>draw</find>
-      <find>image_normal</find>
-      <find>imwrite</find>
-      <find>pt_wd</find>
-      <find>tqdm</find>
-      <find>find_labels</find>
-      <find>test</find>
-      <find>括</find>
-      <find>config</find>
-      <find>img</find>
-      <find>print</find>
       <find>print('a')</find>
       <find>Bbox_test</find>
       <find>delete_top_or_bottom</find>
       <find>delete_pair_problem_result</find>
       <find>pair_version1</find>
       <find>ORIGINAL_TRAIN_DATA</find>
-      <find>ORIGINAL_VAL_DATA</find>
-      <find>CLEAN_DATA</find>
       <find>img_path</find>
       <find>print_hand</find>
       <find>merge</find>
       <find>labels</find>
       <find>results</find>
-      <find>pro_problem_to_right</find>
-      <find>centre</find>
+      <find>suanshi</find>
+      <find>ORIGINAL_VAL_DATA</find>
       <find>revise_output</find>
+      <find>pro_problem_to_right</find>
+      <find>correct_problem</find>
+      <find>centre</find>
+      <find>get_pair_by_distance</find>
+      <find>create_pair</find>
+      <find>in_same_line</find>
+      <find>draw_result</find>
+      <find>decode_ctpn_output</find>
+      <find>draw_re</find>
+      <find>DATA_IMG</find>
+      <find>Img_ALL_BBox</find>
+      <find>CLEAN_DATA</find>
+      <find>ocr_train_bigger</find>
+      <find>one_hot</find>
+      <find>from_xml_read_label.py</find>
+      <find>1</find>
     </findStrings>
     <replaceStrings>
       <replace>background</replace>
@@ -367,18 +379,23 @@
         <option value="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v1/lib/fast_rcnn/nms_wrapper.py" />
         <option value="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v1/ctpn/text.yml" />
         <option value="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v1/ctpn/run.py" />
-        <option value="$PROJECT_DIR$/cutdata.py" />
         <option value="$PROJECT_DIR$/minst_seeable.py" />
         <option value="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v1/lib/text_connector/text_connect_cfg.py" />
-        <option value="$PROJECT_DIR$/model.py" />
-        <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/websever.py" />
         <option value="$PROJECT_DIR$/mnist_to_num.py" />
         <option value="$PROJECT_DIR$/dataset_prepross.py" />
         <option value="$PROJECT_DIR$/from_xml_read_label.py" />
-        <option value="$PROJECT_DIR$/utils.py" />
-        <option value="$PROJECT_DIR$/inference.py" />
+        <option value="$PROJECT_DIR$/log.txt" />
+        <option value="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/setup.py" />
+        <option value="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/ctpn/text.yml" />
+        <option value="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/fast_rcnn/nms_wrapper.py" />
         <option value="$PROJECT_DIR$/easytest.py" />
+        <option value="$PROJECT_DIR$/cutdata.py" />
+        <option value="$PROJECT_DIR$/inference.py" />
+        <option value="$PROJECT_DIR$/utils.py" />
+        <option value="$PROJECT_DIR$/layout_analysis.py" />
+        <option value="$PROJECT_DIR$/model.py" />
+        <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/pipline.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
       </list>
@@ -391,10 +408,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="65" />
-    <option name="y" value="-4" />
-    <option name="width" value="1855" />
-    <option name="height" value="1084" />
+    <option name="x" value="64" />
+    <option name="y" value="13" />
+    <option name="width" value="1857" />
+    <option name="height" value="1068" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -402,7 +419,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -414,19 +430,20 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$USER_HOME$/pipline" />
+    <property name="last_opened_file_path" value="$USER_HOME$/test16/0.png" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/mnist" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -442,7 +459,7 @@
     </option>
   </component>
   <component name="RunManager" selected="Python.pipline">
-    <configuration name="dataset_prepross" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="config" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ocr" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -455,7 +472,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dataset_prepross.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/config.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -486,7 +503,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="inference" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="model" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ocr" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -499,7 +516,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inference.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -522,7 +539,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipline.py" />
-      <option name="PARAMETERS" value="1.JPG" />
+      <option name="PARAMETERS" value="$PROJECT_DIR$/../test16/1.png" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -553,19 +570,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.utils" />
-      <item itemvalue="Python.pipline" />
       <item itemvalue="Python.easytest" />
-      <item itemvalue="Python.dataset_prepross" />
-      <item itemvalue="Python.inference" />
+      <item itemvalue="Python.utils" />
+      <item itemvalue="Python.model" />
+      <item itemvalue="Python.pipline" />
+      <item itemvalue="Python.config" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.pipline" />
-        <item itemvalue="Python.easytest" />
-        <item itemvalue="Python.inference" />
+        <item itemvalue="Python.config" />
         <item itemvalue="Python.utils" />
-        <item itemvalue="Python.dataset_prepross" />
+        <item itemvalue="Python.model" />
+        <item itemvalue="Python.easytest" />
       </list>
     </recent_temporary>
   </component>
@@ -595,7 +612,7 @@
     <frame x="129" y="13" width="3712" height="2148" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.31446713" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21893981" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -626,13 +643,6 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/cutdata.py</url>
-          <line>318</line>
-          <option name="timeStamp" value="8" />
-        </line-breakpoint>
-      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -650,6 +660,31 @@
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>a = cv2.imread(&quot;１.JPG&quot;)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>a = cv2.imread('1.jpg')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>a = cv2.imread('./1.jpg')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>a = cv2.imread('./1.JPG')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>a = cv2.imread('1.JPG')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>a = self.char_right[char]</expression-string>
         <language-id>Python</language-id>
@@ -670,84 +705,9 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>b = a.extend(all_result.problem_result)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>a = []</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>a = '/'.join(small_img_xml[0].split('/')[0:-1])+'/'+str(i).zfill(5)+'.xml'</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>x = random.sample(a,1)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>x = val_data[i*config.BATCH_SIZE,end]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/0.jpg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/1.jpg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/1.JPG" />
-    <entry file="file://$PROJECT_DIR$/result2.JPG" />
-    <entry file="file://$USER_HOME$/.PyCharm2018.2/system/python_stubs/-1503419192/cv2/cv2/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="253576">
-          <caret line="8756" column="4" selection-start-line="8756" selection-start-column="4" selection-end-line="8756" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/result1_.jpg" />
-    <entry file="file://$PROJECT_DIR$/result2_.jpg" />
-    <entry file="file://$PROJECT_DIR$/result3.jpg" />
-    <entry file="file://$PROJECT_DIR$/result3_.jpg" />
-    <entry file="file://$PROJECT_DIR$/result2.jpg" />
-    <entry file="file://$PROJECT_DIR$/result1.jpg" />
-    <entry file="file://$PROJECT_DIR$/result3.JPG" />
-    <entry file="file://$PROJECT_DIR$/result1_2.jpg" />
-    <entry file="file://$PROJECT_DIR$/result2_2.jpg" />
-    <entry file="file://$PROJECT_DIR$/IMG_2428.JPG" />
-    <entry file="file://$PROJECT_DIR$/IMG_2368.JPG" />
-    <entry file="file://$PROJECT_DIR$/IMG_5072.JPG">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/contextlib.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="606">
-          <caret line="123" selection-start-line="123" selection-end-line="123" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v1/lib/fast_rcnn/test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2407">
-          <caret line="86" lean-forward="true" selection-start-line="86" selection-end-line="86" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v1/ctpn/run.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="644">
-          <caret line="72" column="38" selection-start-line="72" selection-start-column="38" selection-end-line="72" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/argparse.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="37932">
@@ -766,24 +726,10 @@
     <entry file="file://$PROJECT_DIR$/webwxgetmsgimg.jpeg">
       <provider selected="true" editor-type-id="images" />
     </entry>
-    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/PIL/Image.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="56289">
-          <caret line="1946" selection-start-line="1946" selection-end-line="1946" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v1/lib/text_connector/text_connect_cfg.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="464">
           <caret line="16" column="30" selection-start-line="16" selection-start-column="30" selection-end-line="16" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mnist_to_num.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1290">
-          <caret line="70" selection-start-line="70" selection-end-line="70" />
         </state>
       </provider>
     </entry>
@@ -792,16 +738,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/a.jpg">
       <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cutdata.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3107">
-          <caret line="206" selection-start-line="206" selection-end-line="222" selection-end-column="41" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/3_3.jpeg" />
     <entry file="file://$PROJECT_DIR$/3_4.jpeg" />
@@ -823,29 +759,12 @@
     <entry file="file://$PROJECT_DIR$/aa_4.jpeg">
       <provider selected="true" editor-type-id="images" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/dataset_prepross.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="29">
-          <caret line="8" column="29" selection-start-line="8" selection-start-column="29" selection-end-line="8" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/minst_seeable.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="116">
           <caret line="11" column="8" selection-start-line="11" selection-start-column="8" selection-end-line="11" selection-end-column="8" />
         </state>
       </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/from_xml_read_label.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1088">
-          <caret line="97" selection-start-line="97" selection-start-column="2" selection-end-line="97" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model2_bn/checkpoint">
-      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tqdm/_tqdm.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -855,81 +774,242 @@
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/Levenshtein/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/log.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/0.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model2_bn/checkpoint">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/seq_acc_analy.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/matplotlib/pyplot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="339">
+          <caret line="1668" column="12" lean-forward="true" selection-start-line="1668" selection-start-column="12" selection-end-line="1668" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/seq_acc2.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/seq_acc.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/ctpn/run.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="121">
+          <caret line="70" column="4" selection-start-line="70" selection-start-column="4" selection-end-line="70" selection-end-column="4" />
           <folding>
-            <element signature="e#0#36#0" expanded="true" />
+            <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config.py">
+    <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/fast_rcnn/nms_wrapper.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="15" column="21" selection-start-line="15" selection-start-column="4" selection-end-line="15" selection-end-column="21" />
+        <state relative-caret-position="290">
+          <caret line="11" selection-start-line="11" selection-end-line="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/Makefile">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/posixpath.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="79" selection-start-line="79" selection-end-line="79" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/PIL/ImageFont.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#888#907#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1247">
+          <caret line="49" column="43" selection-start-line="49" selection-start-column="43" selection-end-line="49" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/ctpn/text.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="174">
+          <caret line="6" column="18" selection-start-line="6" selection-start-column="18" selection-end-line="6" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2/lib/mAP/mAP.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="522">
+          <caret line="24" column="18" selection-start-line="24" selection-start-column="18" selection-end-line="24" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/PIL/Image.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="56289">
+          <caret line="1946" selection-start-line="1946" selection-end-line="1946" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mnist_to_num.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="382">
+          <caret line="29" column="31" lean-forward="true" selection-start-line="29" selection-start-column="25" selection-end-line="29" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/numpy/core/fromnumeric.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="2440" selection-start-line="2440" selection-end-line="2440" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/1.JPG">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2018.2/system/python_stubs/-1503419192/cv2/cv2/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="7131" column="4" selection-start-line="7131" selection-start-column="4" selection-end-line="7131" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/enhance2.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inference.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1722">
+          <caret line="486" selection-start-line="486" selection-end-line="486" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataset_prepross.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2682">
+          <caret line="8" column="29" selection-start-line="8" selection-start-column="29" selection-end-line="8" selection-end-column="29" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cutdata.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9918">
+          <caret line="342" column="32" selection-start-line="342" selection-start-column="32" selection-end-line="342" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="116">
-          <caret line="25" lean-forward="true" selection-start-line="25" selection-end-line="25" />
+        <state relative-caret-position="914">
+          <caret line="324" column="30" selection-start-line="324" selection-start-column="30" selection-end-line="324" selection-end-column="30" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-            <marker date="1539055855560" expanded="true" signature="1144:1147" ph="..." />
-            <marker date="1539055855560" expanded="true" signature="6703:6705" ph="..." />
+            <marker date="1539678866097" expanded="true" signature="2398:2401" ph="..." />
+            <marker date="1539678866097" expanded="true" signature="4189:4653" ph="..." />
+            <marker date="1539678866097" expanded="true" signature="8628:8630" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/easytest.py">
+    <entry file="file://$PROJECT_DIR$/layout_analysis.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="87">
-          <caret line="3" selection-start-line="3" selection-end-line="3" selection-end-column="18" />
+        <state relative-caret-position="450">
+          <caret line="20" column="12" selection-start-line="20" selection-start-column="12" selection-end-line="20" selection-end-column="12" />
+          <folding>
+            <element signature="e#0#34#0" expanded="true" />
+            <marker date="1539678866141" expanded="true" signature="307:310" ph="..." />
+            <marker date="1539678866141" expanded="true" signature="338:378" ph="..." />
+            <marker date="1539678866141" expanded="true" signature="483:489" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model.py">
+    <entry file="file://$PROJECT_DIR$/from_xml_read_label.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6409">
-          <caret line="221" column="39" lean-forward="true" selection-start-line="221" selection-start-column="23" selection-end-line="221" selection-end-column="39" />
+        <state relative-caret-position="203">
+          <caret line="7" column="7" selection-start-line="7" selection-start-column="7" selection-end-line="7" selection-end-column="7" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/enhance1.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/easytest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="435">
+          <caret line="15" selection-start-line="15" selection-end-line="15" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/inference.py">
+    <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4176">
-          <caret line="144" column="42" lean-forward="true" selection-start-line="144" selection-start-column="42" selection-end-line="144" selection-end-column="42" />
+        <state relative-caret-position="643">
+          <caret line="40" column="20" lean-forward="true" selection-start-line="40" selection-start-column="20" selection-end-line="40" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="537">
+          <caret line="438" selection-start-line="438" selection-end-line="438" />
           <folding>
-            <element signature="e#0#28#0" expanded="true" />
-            <marker date="1539134746630" expanded="true" signature="13751:13952" ph="..." />
-            <marker date="1539134746630" expanded="true" signature="14173:14176" ph="..." />
+            <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pipline.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="557">
-          <caret line="632" lean-forward="true" selection-start-line="632" selection-end-line="632" />
+        <state relative-caret-position="914">
+          <caret line="725" lean-forward="true" selection-start-line="725" selection-end-line="725" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
-            <marker date="1539149893316" expanded="true" signature="1734:3780" ph="..." />
-            <marker date="1539149893316" expanded="true" signature="4635:4780" ph="..." />
-            <marker date="1539149893316" expanded="true" signature="17189:17264" ph="..." />
-            <marker date="1539149893316" expanded="true" signature="17287:17585" ph="..." />
-            <marker date="1539149893316" expanded="true" signature="17600:20756" ph="..." />
+            <marker date="1539680772660" expanded="true" signature="8022:10113" ph="..." />
+            <marker date="1539680772660" expanded="true" signature="10968:11113" ph="..." />
+            <marker date="1539680772660" expanded="true" signature="23784:23859" ph="..." />
+            <marker date="1539680772660" expanded="true" signature="23882:24180" ph="..." />
+            <marker date="1539680772660" expanded="true" signature="24195:27946" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="464">
-          <caret line="16" column="36" selection-start-line="16" selection-start-column="36" selection-end-line="16" selection-end-column="36" />
+        <state relative-caret-position="493">
+          <caret line="17" column="36" lean-forward="true" selection-start-line="17" selection-start-column="36" selection-end-line="17" selection-end-column="36" />
         </state>
       </provider>
     </entry>

@@ -1,10 +1,14 @@
 import utils
+import sys
 import tensorflow as tf
 from model import CTC_Model
 from config import Config as config
 import cv2
-from Arithmetic_Func_detection_for_CTPN_v1.ctpn import run
+
 from PIL import Image,ImageDraw,ImageFont
+sys.path.append('Arithmetic_Func_detection_for_CTPN_v2')
+from Arithmetic_Func_detection_for_CTPN_v2.ctpn import run
+
 import math
 import argparse
 import time
@@ -14,9 +18,10 @@ import os
 import re
 from inference import set_xml_data
 import Levenshtein
+from utils import bbbox_to_distance,in_same_line
 
 class Result(object):
-    def __init__(self,bbox,img):
+    def __init__(self,bbox,img,type='start'):
         self.top = bbox[1]
         self.bottom = bbox[3]
         self.left = bbox[0]
@@ -28,14 +33,16 @@ class Result(object):
         self.output = ''
         self.revise_output = ''
         self.state = 'right'
+        self.type = type
 
     def set_result(self,result):
         self.result = result
 
 
 class All_Result(object):
-    def __init__(self,bboxes,img):
+    def __init__(self,bboxes,img,types):
         self.bboxes = bboxes
+        self.types = types
         self.img = img
         self.results = []
         self.connect_result = []
@@ -45,13 +52,19 @@ class All_Result(object):
         self.right_result = []
         self.error_result = []
         self.problem_result = []
+        self.print_word = []
+        self.hand_word = []
+        self.pair = {}
+        self.not_pair = []
+        self.merge = []
+        self.all_box = []
 
     def create_input(self):
         imgs = []
         wides = []
 
-        for box in self.bboxes:
-            result = Result(box,self.img)
+        for i,box in enumerate(self.all_box):
+            result = Result(box.bbox,self.img,self.types[i])
             if result.img_wide>self.max_wide:
                 self.max_wide = result.img_wide
             wides.append(result.img_wide)
@@ -61,6 +74,171 @@ class All_Result(object):
         inputs,wides = utils.create_input(imgs,self.max_wide,wides)
 
         return inputs,wides
+
+    def get_pair_by_distance(self,print_word_all, hand_word_all):
+        # all_bbox = Img_ALL_BBox()
+
+        print_hand = {}
+        hand_print = {}
+        for i, print_word in enumerate(print_word_all):  # 手写到打印匹配一遍
+            min_distance = 9999
+            pair = -1
+            for j, hand_word in enumerate(hand_word_all):  # 算距离
+                distance = bbbox_to_distance(print_word.bbox, hand_word.bbox)
+                if min_distance > distance:
+                    pair = j
+                    min_distance = distance
+
+            try:
+                if in_same_line(print_word.bbox, hand_word_all[pair].bbox) == 'in':  # 算是否在一行
+                    print_hand[i] = pair
+                    if hand_print.get(pair):
+                        hand_print[pair].append(i)
+                    else:
+                        hand_print[pair] = [i]
+            except:
+                pass
+
+        for key in hand_print:  # 打印到手写再匹配一遍
+            if len(hand_print[key]) > 1:
+                min_distance = 9999
+                min_value = -1
+                for print in hand_print[key]:
+                    print_word = print_word_all[print]
+                    hand_word = hand_word_all[key]
+                    distance = bbbox_to_distance(print_word.bbox, hand_word.bbox)
+                    if min_distance > distance:
+                        min_distance = distance
+                        print_hand.pop(min_value, 'none')
+                        min_value = print
+                    else:
+                        print_hand.pop(print)
+
+        return print_hand, hand_print
+
+    def create_big_img(self,pair,box_list1,box_list2):        #先合并非括号填词
+        box_list1_ = box_list1.copy()
+        box_list2_ = box_list2.copy()
+        for i, print_num in enumerate(pair):
+            hand_num = pair[print_num]
+            print = box_list1_[print_num]
+            hand = box_list2_[hand_num]
+            box_list1.remove(print)
+            box_list2.remove(hand)
+            top = min(print.top, hand.top)
+            bottom = max(print.bottom, hand.bottom)
+            left = min(print.left, hand.left)
+            right = max(print.right, hand.right)
+
+            # label = print.label + hand.label
+            big_img = Result([left, top, right, bottom], self.img, 'merge')
+            # if '*' in big_img.label or '~' in big_img.label:
+            #     big_img.type = '...'
+            self.merge.append(big_img)
+        # try:
+
+        # except:
+        #     print('a')
+
+        self.not_pair = box_list1+box_list2
+
+
+    def create_big_img2(self,pair,box_list1,box_list2):         #合并括号填词的
+        box_list1_ = box_list1.copy()
+        box_list2_ = box_list2.copy()
+        try:
+            for i, print_num in enumerate(pair):
+                hand_num = pair[print_num]
+                print = box_list1_[print_num]
+                hand = box_list2_[hand_num]
+                box_list1.remove(print)
+                box_list2.remove(hand)
+                top = min(print.top, hand.top)
+                bottom = max(print.bottom, hand.bottom)
+                left = min(print.left, hand.left)
+                right = max(print.right, hand.right)
+
+
+                # label = print.label + hand.label
+                big_img = Result([left, top, right, bottom], self.img, 'merge')
+                self.merge.append(big_img)
+        except:
+            print('a')
+
+        self.not_pair = box_list2
+        self.all_box = self.merge+self.not_pair
+
+    def get_pair_by_distance2(self,print_word_all, hand_word_all):
+        # all_bbox = Img_ALL_BBox()
+
+        print_hand = {}
+        hand_print = {}
+        for i, print_word in enumerate(print_word_all):  # 手写到打印匹配一遍
+            min_distance = 9999
+            pair = -1
+            for j, hand_word in enumerate(hand_word_all):  # 算距离
+                distance = bbbox_to_distance(print_word.bbox, hand_word.bbox)
+                if min_distance > distance:
+                    pair = j
+                    min_distance = distance
+
+            try:
+                if in_same_line(print_word.bbox, hand_word_all[pair].bbox) == 'in' and min_distance < (
+                        print_word.bbox[2] - print_word.bbox[0]) / 3:  # 算是否在一行
+                    print_hand[i] = pair
+                    if hand_print.get(pair):
+                        hand_print[pair].append(i)
+                    else:
+                        hand_print[pair] = [i]
+            except:
+                pass
+
+        for key in hand_print:  # 打印到手写再匹配一遍
+            if len(hand_print[key]) > 1:
+                min_distance = 9999
+                min_value = -1
+                for print in hand_print[key]:
+                    print_word = print_word_all[print]
+                    hand_word = hand_word_all[key]
+                    distance = bbbox_to_distance(print_word.bbox, hand_word.bbox)
+                    if min_distance > distance:
+                        min_distance = distance
+                        print_hand.pop(min_value, 'none')
+                        min_value = print
+                    else:
+                        print_hand.pop(print)
+
+        return print_hand, hand_print
+
+    def connect_boxes(self):
+        for i,box in enumerate(self.bboxes):
+            result = Result(box,self.img,self.types[i])
+            if result.type == 'print':
+                self.print_word.append(result)
+            else:
+                self.hand_word.append(result)
+
+        print_hand, hand_print = self.get_pair_by_distance(self.print_word, self.hand_word)
+        self.pair = print_hand
+        self.create_big_img(self.pair, self.print_word, self.hand_word)
+        pair, _ = self.get_pair_by_distance2(self.merge, self.not_pair)
+        self.create_big_img2(pair, self.merge, self.not_pair)
+
+
+        # for i,result in enumerate(self.all_box):
+        #     cv2.imwrite('cut_img/'+str(i)+'.jpg',result.img)
+
+        print('a')
+
+
+
+
+
+
+
+
+
+
 
 class Evaluate_Data(object):
     def __init__(self):
@@ -73,6 +251,7 @@ class Evaluate_Data(object):
         self.state_all = 0
         self.state_right = 0
         self.char_acc = 0
+        self.recall = 0
 
         self.char_all = {'0':0,'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'+':0,'-':0,'×':0,'÷':0,'=':0,'*':0,'~':0,'(':0,')':0}
 
@@ -105,7 +284,7 @@ class Evaluate_Data(object):
 
 
         self.evaluate_dict = {'all':self.all_recall,'=':self.equation_recall,'()':self.bracket_recall,'...':self.residual_recall,'state':self.state_recall,'char_acc':
-                              self.char_acc}
+                              self.char_acc,'recall':self.recall}
 
         for char in self.char_all:
             if self.char_all[char] == 0:
@@ -171,7 +350,7 @@ def create_sess():
             net, run_list = run.build_ctpn_model()
             saver = tf.train.Saver()
             saver.restore(sess1,
-                          '/home/wzh/ocr/Arithmetic_Func_detection_for_CTPN_v1/checkpoints/VGGnet_fast_rcnn_iter_25000.ckpt')
+                          'Arithmetic_Func_detection_for_CTPN_v2/checkpoints/VGGnet_fast_rcnn_iter_65000.ckpt')
 
 
 
@@ -427,10 +606,18 @@ def pipline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_training
     feed_dict, img_resized_shape, im_scales, bbox_scale = run.run_ctpn(img, net)
     out_put = sess1.run(run_list, feed_dict)
 
-    bboxes = run.decode_ctpn_output(out_put, im_scales, bbox_scale, img_resized_shape)
+    bboxes,types = run.decode_ctpn_output(out_put, im_scales, bbox_scale, img_resized_shape)
+
+    types2 = []
+    for i,type in enumerate(types):
+        if type == 1:
+            types2.append('hand')
+        else:
+            types2.append('print')
 
 
-    all_result = All_Result(bboxes,img)
+    all_result = All_Result(bboxes,img,types2)
+    all_result.connect_boxes()
     image,wides = all_result.create_input()
 
     sentence = sess2.run(dense_decoder, feed_dict={inputs: image, width: wides, is_training: False})
@@ -453,7 +640,7 @@ def pipline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_training
         try:
             result.state = eval_label(output[i])
 
-            # result.state, result.revise_output, result.output = delete_top_or_bottom(output[i])
+            result.state, result.revise_output, result.output = delete_top_or_bottom(output[i])
         except:
             result.state = 'problem'
 
@@ -470,54 +657,54 @@ def pipline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_training
     temp = all_result.problem_result.copy()
 
 
-    # #合并有问题的检测框-----------------------------------------------------------------------------------------
-    # delete = []
-    # for i, problem1 in enumerate(temp):
-    #     problems_without = temp.copy()
-    #     problems_without.pop(i)
+    #合并有问题的检测框-----------------------------------------------------------------------------------------
+    delete = []
+    for i, problem1 in enumerate(temp):
+        problems_without = temp.copy()
+        problems_without.pop(i)
+
+        for j, problem2 in enumerate(problems_without):
+            if  min(problem1.bottom, problem2.bottom) > max(problem1.top, problem2.top) \
+                    and problem2.left >= problem1.right and (problem2.left - problem1.right) < 10/bbox_scale and not set('*——×÷')&set(problem2.output):
+                state, revise_output, output = delete_pair_problem_result(problem1.output, problem2.output)
+                box = [min(problem1.left, problem2.left), min(problem1.top, problem2.top),
+                       max(problem1.right, problem2.right), max(problem1.bottom, problem2.bottom)]
+                result = Result(box, img)
+                result.state = state
+                result.revise_output = revise_output
+                result.output = output
+
+                if result.state == 'right':
+                    all_result.right_result.append(result)
+                elif result.state == 'error' :
+                    all_result.error_result.append(result)
+
+
+                try:
+                    all_result.problem_result.remove(problem1)
+                    all_result.problem_result.remove(problem2)
+                except:
+                    pass
+
+    for i,problem in enumerate(all_result.problem_result.copy()):
+
+        output,state = add_bracket(problem.output)
+        if state == 'right':
+            all_result.problem_result.remove(problem)
+            problem.revise_output = output
+            all_result.right_result.append(problem)
+        elif state == 'error':
+            all_result.problem_result.remove(problem)
+            problem.state = state
+            problem.output = output
+            all_result.error_result.append(problem)
     #
-    #     for j, problem2 in enumerate(problems_without):
-    #         if  min(problem1.bottom, problem2.bottom) > max(problem1.top, problem2.top) \
-    #                 and problem2.left >= problem1.right and (problem2.left - problem1.right) < 10/bbox_scale and not set('*——×÷')&set(problem2.output):
-    #             state, revise_output, output = delete_pair_problem_result(problem1.output, problem2.output)
-    #             box = [min(problem1.left, problem2.left), min(problem1.top, problem2.top),
-    #                    max(problem1.right, problem2.right), max(problem1.bottom, problem2.bottom)]
-    #             result = Result(box, img)
-    #             result.state = state
-    #             result.revise_output = revise_output
-    #             result.output = output
-    #
-    #             if result.state == 'right':
-    #                 all_result.right_result.append(result)
-    #             else:
-    #                 all_result.error_result.append(result)
     #
     #
-    #             try:
-    #                 all_result.problem_result.remove(problem1)
-    #                 all_result.problem_result.remove(problem2)
-    #             except:
-    #                 pass
-    #
-    # for i,problem in enumerate(all_result.problem_result.copy()):
-    #
-    #     output,state = add_bracket(problem.output)
-    #     if state == 'right':
-    #         all_result.problem_result.remove(problem)
-    #         problem.revise_output = output
-    #         all_result.right_result.append(problem)
-    #     elif state == 'error':
-    #         all_result.problem_result.remove(problem)
-    #         problem.state = state
-    #         problem.output = output
-    #         all_result.error_result.append(problem)
-    #
-    #
-    #
-    # for i,error_result in enumerate(all_result.error_result):
-    #     if '21÷' in error_result.output:
-    #         print('a')
-    #     error_result.output = pro_problem_to_right(error_result.output)
+    for i,error_result in enumerate(all_result.error_result):
+        if '21÷' in error_result.output:
+            print('a')
+        error_result.output = pro_problem_to_right(error_result.output)
     #
     #
     #
@@ -527,8 +714,13 @@ def pipline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_training
 
     for result in all_result.connect_result:
         if result.state == 'right':
-            # result.output = result.revise_output
-            pass
+            result.output = result.revise_output
+            # pass
+
+
+    for result in all_result.connect_result.copy():
+        if set(result.output)&set('+-×÷()') == '=':
+            all_result.connect_result.remove(result)
 
     return all_result
 
@@ -555,7 +747,7 @@ def get_iou(box1,box2):
 
 def evaluate():
 
-    xml_path = '/home/wzh/data2/xml'
+    xml_path = '/home/wzh/data3/xml'
     all_img = set_xml_data(xml_path)
 
 
@@ -618,11 +810,19 @@ def evaluate():
                 evaluate_data.state_right = evaluate_data.state_right+1
             evaluate_data.state_all = evaluate_data.state_all+1
 
-            for char in true_box.label:
+            for char in set(true_box.label):
                 evaluate_data.char_all[char] = evaluate_data.char_all[char]+1
 
             for char in set(true_box.label).intersection(pre_box.output):
                 evaluate_data.char_right[char] = evaluate_data.char_right[char]+1
+
+
+            if true_box.state == pre_box.state and true_box.label!= pre_box.output:
+                draw_bbox(true_box.bbox, img, x_pro, y_pro, (255, 255, 255))
+                print(pre_box.output)
+            else:
+                draw_bbox(true_box.bbox, img, x_pro, y_pro, (0, 255, 255))
+
 
 
             evaluate_data.char_acc = evaluate_data.char_acc+1-(Levenshtein.distance(true_box.label,pre_box.output)/len(true_box.label))
@@ -634,23 +834,32 @@ def evaluate():
 
 
 
-            draw_bbox(pre_box.bbox,img,x_pro, y_pro,(255,0,0))
-            draw_bbox(true_box.bbox,img,x_pro, y_pro,(0,0,255))
+
+            # draw_bbox(pre_box.bbox,img,x_pro, y_pro,(255,0,0))
+            # draw_bbox(true_box.bbox,img,x_pro, y_pro,(0,0,255))
+        lenght = 0
+        if len(img_result.all_box)>0:
+            evaluate_data.recall = evaluate_data.recall + (len(result_pair) / len(img_result.all_box))
+            lenght = lenght+1
 
 
-        # draw_box(img, result.connect_result, x_pro, y_pro)
-        # img = draw_result(img, result.connect_result, x_pro, y_pro)
-        # img.show()
+
+
+        draw_box(img, result.connect_result, x_pro, y_pro)
+        img = draw_result(img, result.connect_result, x_pro, y_pro)
+        img.save('result/pipeline'+str(i)+'_.jpg')
 
         # cv2.imwrite('/home/wzh/test2/'+str(i)+'_.jpg',img)
+
+    evaluate_data.recall = evaluate_data.recall / lenght
 
     evaluate_data.compute()
     print(evaluate_data.evaluate_dict)
     print(evaluate_data.char_recall)
 
-    log = open('log.txt')
-    log.writelines(evaluate_data.evaluate_dict)
-    log.writelines(evaluate_data.char_recall)
+    log = open('log.txt','a')
+    log.writelines(str(evaluate_data.evaluate_dict))
+    log.writelines(str(evaluate_data.char_recall))
 
         # img.save('/home/wzh/test2/'+str(i)+'_.jpg')
 
@@ -662,7 +871,9 @@ def evaluate():
 
 
 if __name__ == '__main__':
-    evaluate()
+    # print(eval_label('长='))
+    # evaluate()
+
 
 #    [2246, 1660, 2662, 1765]
 # [2271, 1363, 2710, 1448]
@@ -676,7 +887,7 @@ if __name__ == '__main__':
     # parser.add_argument('path',help='image path',type=str)
     # args = parser.parse_args()
     # img = cv2.imread(args.path)
-    #
+    # #
     # sess1, sess2, net, run_list, dense_decoder,inputs,width,is_training = create_sess()
     # result = pipline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training)
     # x_pro = 3024 / img.shape[1]
@@ -687,36 +898,36 @@ if __name__ == '__main__':
     # draw_box(img, result.results, x_pro, y_pro)
     # img = draw_result(img, result.results, x_pro, y_pro)
     # img.show()
-    # img.save('bb.jpg')
+    # img.save(args.path.replace('.','_.'))
 
 
 
 
 
 
-    # sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training = create_sess()
-    # img_path = glob('/home/wzh/data/img/*')
-    # for path in tqdm(img_path):
-    #     img = cv2.imread(path)
-    #     save_path = path.replace('data/img','pipline_result/crnn1/big')
-    #
-    #
-    #     result = pipline(img.copy(),sess1, sess2, net, run_list, dense_decoder,inputs,width,is_training)
-    #     x_pro = 3024 / img.shape[1]
-    #     y_pro = 4031 / img.shape[0]
-    #     img = cv2.resize(img, (3024, 4032))
-    #     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    #
-    #     # draw_box(img,result.right_error_result,x_pro,y_pro)
-    #     # img = draw_result(img,result.right_error_result,x_pro,y_pro)
-    #     # draw_box(img,result.problem_result,x_pro,y_pro)
-    #     # img = draw_result(img,result.problem_result,x_pro,y_pro)
-    #
-    #     draw_box(img, result.connect_result, x_pro, y_pro)
-    #     img = draw_result(img, result.connect_result, x_pro, y_pro)
-    #
-    #     # draw_box(img, result.results, x_pro, y_pro)
-    #     # img = draw_result(img, result.results, x_pro, y_pro)
-    #
-    #     img.save(save_path)
+    sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training = create_sess()
+    img_path = glob('/home/wzh/test16/*')
+    for path in tqdm(img_path):
+        img = cv2.imread(path)
+        save_path = path.replace('test16','pipline_result/test16_3')
+
+
+        result = pipline(img.copy(),sess1, sess2, net, run_list, dense_decoder,inputs,width,is_training)
+        x_pro = 3024 / img.shape[1]
+        y_pro = 4031 / img.shape[0]
+        img = cv2.resize(img, (3024, 4032))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        # draw_box(img,result.right_error_result,x_pro,y_pro)
+        # img = draw_result(img,result.right_error_result,x_pro,y_pro)
+        # draw_box(img,result.problem_result,x_pro,y_pro)
+        # img = draw_result(img,result.problem_result,x_pro,y_pro)
+
+        draw_box(img, result.connect_result, x_pro, y_pro)
+        img = draw_result(img, result.connect_result, x_pro, y_pro)
+
+        # draw_box(img, result.results, x_pro, y_pro)
+        # img = draw_result(img, result.results, x_pro, y_pro)
+
+        img.save(save_path)
     #

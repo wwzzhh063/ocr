@@ -12,8 +12,50 @@ import random
 from config import Config as config
 from tqdm import tqdm
 import matplotlib.pyplot as plot
+import skimage
 
 ont_hot = config.ONE_HOT
+
+
+def get_distance(data1, data2):
+    points = zip(data1, data2)
+    diffs_squared_distance = [pow(a - b, 2) for (a, b) in points]
+    return math.sqrt(sum(diffs_squared_distance))
+
+
+def bbbox_to_distance(point_i,point_j):
+    if len(point_i) == 4:
+        print_word_point = (point_i[2], (point_i[1] + point_i[3]) / 2)
+    else:
+        print_word_point = ((point_i[2] + point_i[4]) / 2, (point_i[3] + point_i[5]) / 2)
+
+    if len(point_j) == 4:
+        hand_word_ponit = (point_j[0], (point_j[1] + point_j[3]) / 2)
+    else:
+        hand_word_ponit = ((point_j[0] + point_j[6]) / 2, (point_j[1] + point_j[7]) / 2)
+
+    distences = get_distance(hand_word_ponit, print_word_point)
+
+    return distences
+
+
+def in_same_line(print_bbox,hand_bbox):
+    if len(print_bbox) == 4:
+        centre_print_bbox = (print_bbox[1] + print_bbox[3]) / 2
+    else:
+        centre_print_bbox =  (print_bbox[3] + print_bbox[5]) / 2
+
+    if len(hand_bbox) == 4:
+        if centre_print_bbox>hand_bbox[1] and centre_print_bbox<hand_bbox[3]:
+            return 'in'
+        else:
+            return 'out'
+    else:
+        if centre_print_bbox > hand_bbox[1] and centre_print_bbox < hand_bbox[7]:
+            return 'in'
+        else:
+            return 'out'
+
 
 def create_input(image_list,max_wide,wide_list):
     images = np.zeros([len(image_list), config.IMAGE_HEIGHT, max_wide])
@@ -98,6 +140,20 @@ class DataSet(object):
         label_len = np.array(label_len, dtype=np.int32)
         return  labels[0], label_len
 
+
+    def data_enhance(self,img):
+        img_list = []
+        img1 = skimage.util.random_noise(img, mode='gaussian', seed=None, clip=True)*255   #高斯噪声
+        img1 = np.asarray(img1,np.uint8)
+        img1 = self.image_normal(img1)
+        img2 = skimage.util.random_noise(img, mode='salt', seed=None, clip=True)*255   #椒盐噪声
+        img2 = np.asarray(img2, np.uint8)
+        img2 = self.image_normal(img2)
+        img_list.append(img1)
+        img_list.append(img2)
+        return img_list
+
+
     def get_imges(self,images_path):
         batch_size = len(images_path)
         image_list = []
@@ -106,9 +162,13 @@ class DataSet(object):
 
         for path in images_path:
             image = cv2.imread(path)
+            image_enhance = image.copy()
             image = self.image_normal(image)
             images_wide.append(image.shape[1])
             image_list.append(image)
+            if config.DATA_ENHANCE:
+                img_list = self.data_enhance(image_enhance)
+                img_list.extend(img_list)
             if image.shape[1]>max_wide:
                 max_wide = image.shape[1]
 
@@ -233,7 +293,7 @@ class DataSet(object):
 #     val_data = glob(os.path.join(config.VAL_DATA, '*'))
 #     for path in val_data:
 #         image = cv2.imread(path)
-#         image = cv2.resize(image, (int(image.shape[1] / image.shape[0] * 32), 32))
+#         image = cv2.resize(image, (int(image.shape[1] / image.shape[0] * 32), 32))：
 #         cv2.imwrite(path.replace('test_data','see'),image)
 
 
@@ -244,15 +304,23 @@ class DataSet(object):
 # #
 # print (os.environ['HOME'])
 # dataset = DataSet()
-# generator = dataset.train_data_generator(1)
+# generator = dataset.train_data_generator(32)
 # while True:
 #     images, labels, wides,length ,epoch= next(generator)
 #     if epoch==1:
 #         break
-    # print('aa')
+#     print('aa')
 #
 # images, labels, wides,length = dataset.create_val_data()
 # print('a')
 
 # dataset = DataSet()
 # dataset.analy_data()
+# one_hot = []
+# for path in tqdm(glob(os.path.join(config.CLEAN_DATA,'*'))):
+#     label = path.split('_')[-1]
+#     for char in label:
+#         one_hot.append(char)
+#
+# one_hot = list(set(one_hot))
+# print(one_hot)

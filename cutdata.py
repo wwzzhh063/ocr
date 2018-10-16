@@ -297,20 +297,22 @@ def preprocess(img,size = 15):
     mask = np.zeros(img.shape)
 
     i = 0
-    while i <= img.shape[0]:
-        if i + size > img.shape[0]:
+    while i < img.shape[0]:
+        if i + size >= img.shape[0]:
             i_end = img.shape[0]
         else:
             i_end = i + size
         j = 0
 
-        while j <= img.shape[1]:
-            if j + size > img.shape[1]:
+        while j < img.shape[1]:
+            if j + size >= img.shape[1]:
                 j_end = img.shape[1]
             else:
                 j_end = j + size
-
-            part_mask = enhance(img[i:i_end, j:j_end])
+            try:
+                part_mask = enhance(img[i:i_end, j:j_end])
+            except:
+                print('a')
             mask[i:i_end, j:j_end] = part_mask
             j = j + size
 
@@ -322,8 +324,9 @@ def preprocess(img,size = 15):
     #cv2.imwrite("./img2.jpg", img2)
     img2 = cv2.cvtColor(img2,cv2.COLOR_GRAY2BGR)
     img3 = img1*(img2/255)
-    cv2.imwrite("./img3.jpg", img3)
-    return img3
+    img4 = img*(img2/255)
+    # cv2.imwrite("./img3.jpg", img3)
+    return img4
 
 
 

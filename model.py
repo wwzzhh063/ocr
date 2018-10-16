@@ -116,22 +116,23 @@ class CTC_Model():
             with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='SAME'):
 
                 conv1 = slim.conv2d(inputs,64,scope='conv1')
-                poo1 = slim.max_pool2d(conv1,kernel_size=[2,2],stride=[2,2],scope='pool1')
+                poo1 = slim.max_pool2d(conv1,scope='pool1')
 
                 conv2 = slim.conv2d(poo1,128,scope='conv2')
                 pool2 = slim.max_pool2d(conv2,scope='pool2')
 
                 conv3 = slim.conv2d(pool2,256,scope='conv3')
                 conv4 = slim.conv2d(conv3,256,scope='conv4')
-                pool3 = slim.max_pool2d(conv4,scope='pool3')
+                pool3 = slim.max_pool2d(conv1,kernel_size=[2,2],stride=[2,2],scope='pool3')
 
                 conv5 = slim.conv2d(pool3,512,scope='conv5',normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params)
                 conv6 = slim.conv2d(conv5,512,scope='conv6',normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params)
-                pool4 = slim.max_pool2d(conv6,scope='pool4')
+                pool4 = slim.max_pool2d(conv1,kernel_size=[2,2],stride=[2,2],scope='pool4')
 
                 conv7 = slim.conv2d(pool4,512,padding='SAME',scope='conv7')
 
                 features = tf.squeeze(conv7, axis=1, name='features')
+
 
                 conv1_trim = tf.constant(2 * (3// 2),
                                          dtype=tf.int32,
@@ -267,9 +268,9 @@ class CTC_Model():
             with tf.Session() as sess:
                 sess.run(tf.global_variables_initializer())
 
-                if os.path.exists(config.MODEL_SAVE.replace('ctc.ckpt','')):
-                    saver.restore(sess,config.MODEL_SAVE)
-                    print("restore")
+                # if os.path.exists(config.MODEL_SAVE.replace('ctc.ckpt','')):
+                #     saver.restore(sess,config.MODEL_SAVE)
+                #     print("restore")
 
                 merged = tf.summary.merge_all()
                 writer_train = tf.summary.FileWriter(ctc_train_path, sess.graph)
@@ -440,7 +441,7 @@ class CTC_Model():
 #
 
 # model = CTC_Model()
-# # # model.train()
+# model.train()
 # model.output('/home/wzh/ocr/0.jpg')
 # # model.analyze_result('/home/wzh/analyze')
 

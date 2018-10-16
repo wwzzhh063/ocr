@@ -11,6 +11,7 @@ import random
 from tqdm import tqdm
 import numpy as np
 from config import Config as config
+from PIL import Image,ImageDraw,ImageFont
 
 
 def eval_label(label):
@@ -87,10 +88,10 @@ class Bbox(object):
             self.left = bbox[0]
             self.right = bbox[2]
         else:
-            self.top = min(bbox[1],bbox[3])
-            self.bottom = max(bbox[5],bbox[7])
-            self.left = min(bbox[0],bbox[6])
-            self.right = max(bbox[2],bbox[4])
+            self.top = min(bbox[1],bbox[3],bbox[5],bbox[7])
+            self.bottom = max(bbox[1],bbox[3],bbox[5],bbox[7])
+            self.left = min(bbox[0],bbox[6],bbox[2],bbox[4])
+            self.right = max(bbox[0],bbox[6],bbox[2],bbox[4])
             self.bbox = [self.left,self.top,self.right,self.bottom]
 
 
@@ -105,6 +106,7 @@ class Img_ALL_BBox(object):
         self.img = img
         self.not_pair = []
         self.all_box = []
+        self.problem_box = []
 
     def cut_biger_img(self,path,num=0):
         for i,print_num in enumerate(self.pair):
@@ -189,6 +191,20 @@ class Img_ALL_BBox(object):
             bbox.state =  eval_label(bbox.label)
             if bbox.state == 'problem':
                 self.all_box.remove(bbox)
+                self.problem_box.append(bbox)
+
+        for bbox in self.print_word.copy():
+            bbox.state = eval_label(bbox.label)
+            if bbox.state != 'problem':
+                self.all_box.append(bbox)
+                self.print_word.remove(bbox)
+
+
+        for bbox in self.hand_word.copy():
+            bbox.state = eval_label(bbox.label)
+            if bbox.state != 'problem':
+                self.all_box.append(bbox)
+                self.hand_word.remove(bbox)
 
 
 
@@ -196,8 +212,7 @@ class Img_ALL_BBox(object):
 def find_labels(name,j):
     name = name.split('.')[0]
     name = name.split('_')[-1]
-    path = config.ORIGINAL_TRAIN_DATA
-    path = config.ORIGINAL_VAL_DATA
+    path = config.SHIBIE
     paths = glob(os.path.join(path,'*'))
     label_path = ''
     for i in paths:
@@ -221,7 +236,7 @@ def set_xml_data(path):
     for big_img_xml in tqdm(xml_path):            #所有xml
         p = ParseXml(big_img_xml)
         img_name_, class_list, bbox_list,jpg_or_JPG = p.get_bbox_class()
-        big_img_path = os.path.join('/home/wzh/data/img',big_img_xml.split('/')[-1].replace('xml',jpg_or_JPG))
+        big_img_path = os.path.join(config.DATA_IMG,big_img_xml.split('/')[-1].replace('xml',jpg_or_JPG))
         all_bbox_img = Img_ALL_BBox(cv2.imread(big_img_path))           #一张图片中的所有box   tetst---------------------------------
         all_bbox_img.img_path = big_img_path
         img_name.append(img_name_)
@@ -390,7 +405,7 @@ def get_pair_by_distance2(print_word_all,hand_word_all):
                 min_distance = distance
 
         try:
-            if in_same_line(print_word.bbox,hand_word_all[pair].bbox) == 'in' and min_distance<(print_word.bbox[2]-print_word.bbox[0])/3:  #算是否在一行
+            if in_same_line(print_word.bbox,hand_word_all[pair].bbox) == 'in' and min_distance<(print_word.bbox[2]-print_word.bbox[0])/3 and eval_label(print_word.label)=='problem':  #算是否在一行
                 print_hand[i] = pair
                 if hand_print.get(pair):
                     hand_print[pair].append(i)
@@ -453,11 +468,25 @@ def get_right(box):
 
     return to_int(print_word_point)
 
+def draw_result(img,all_result,x_pro=1,y_pro=1):
+    ttfont = ImageFont.truetype('SimSun.ttf',25)
+    img = Image.fromarray(img)
+    draw = ImageDraw.Draw(img)
+    for result in all_result:
+        if result.state == 'right':
+            draw.text((int(result.left*x_pro),int(result.top*y_pro)),result.revise_output,fill='blue',font=ttfont)
+        else:
+            draw.text((int(result.left*x_pro),int(result.top*y_pro)),result.output,fill='blue',font=ttfont)
+        # cv2.putText(img,result.output,(result.left,result.top),cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,0),2)
+    return img
+
+
+
 
 if __name__ == '__main__':
 
 
-    xml_path = '/home/wzh/data2/xml'
+    xml_path = config.DATA_XML
     all_img = set_xml_data(xml_path)
 
 
@@ -465,10 +494,26 @@ if __name__ == '__main__':
         print_hand, hand_print = get_pair_by_distance(img_result.print_word,img_result.hand_word)
         img_result.pair = print_hand
         img = cv2.imread(img_result.img_path)
-        path = img_result.img_path.replace('data/img','pair/version3')
-        # for pair in print_hand:
-        #     bbox_print = img_result.print_word[pair]
-        #     bbox_hand = img_result.hand_word[print_hand[pair]]
+        resize_list = []
+
+        if img.shape[0]>3900:
+            resize_list.append((1920/img.shape[0],1080/img.shape[1]))
+            resize_list.append((854/img.shape[0],640/img.shape[0]))
+        elif img.shape[0]>1800:
+            resize_list.append((854/img.shape[0],640/img.shape[0]))
+
+        resize_list = []
+
+
+
+
+
+
+
+
+        for pair in print_hand:
+            bbox_print = img_result.print_word[pair]
+            bbox_hand = img_result.hand_word[print_hand[pair]]
 
             # cv2.line(img, get_box_centre(bbox_print.bbox), get_box_centre(bbox_hand.bbox), (0, 0, 0), 2)
 
@@ -485,13 +530,50 @@ if __name__ == '__main__':
 
         img_result.create_pair()
 
+        save_path = config.VAL_DATA
+        for i,bbox in enumerate(img_result.all_box):
+            cut_img = img[bbox.top:bbox.bottom+1,bbox.left:bbox.right+1]
+            label = bbox.label
 
-        for bbox in img_result.all_box:
-            draw_bbox(bbox.bbox,img,(0, 0, 255))
+            if len(resize_list)>0:
+                cut_path = os.path.join(save_path, str(i) + '_' + '0' + '_' + label + '.jpg')
+                cv2.imwrite(cut_path, cut_img)
+                for j,resize in enumerate(resize_list):
+                    resize_img = cv2.resize(cut_img,None,fx=resize[1],fy=resize[0])
+                    cut_path = os.path.join(save_path,str(i)+'_'+str(j+1)+'_'+label+'.jpg')
+                    cv2.imwrite(cut_path,resize_img)
+
+            else:
+                cut_path = os.path.join(save_path, str(i) + '_' + label + '.jpg')
+                cv2.imwrite(cut_path, cut_img)
+
+
+
+        #验证------------------------------------------------------------------------------------------------------------
+        # img2 = cv2.imread(img_result.img_path)
+        # path = img_result.img_path.replace('data/img', 'pair/version3')
+        # path2 = img_result.img_path.replace('data/img', 'pair/version4')
+        # for bbox in img_result.all_box:
+        #     draw_bbox(bbox.bbox,img,(0, 0, 255))
+        #
+        #
+        # for bbox in img_result.print_word:
+        #     draw_bbox(bbox.bbox,img2,(255, 0, 0))
+        #     cv2.putText(img2,bbox.label,(bbox.bbox[0],bbox.bbox[1]),cv2.FONT_HERSHEY_COMPLEX,1,(0,0,255),1)
+        #
+        #
+        # for bbox in img_result.hand_word:
+        #     draw_bbox(bbox.bbox, img2, (0, 255, 0))
+        #     cv2.putText(img2, bbox.label, (bbox.bbox[0], bbox.bbox[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0,0 ), 1)
+        #
+        # for bbox in img_result.problem_box:
+        #     draw_bbox(bbox.bbox, img2, (0, 0, 255))
+        #     cv2.putText(img2, bbox.label, (bbox.bbox[0], bbox.bbox[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 1)
 
         # for print in img_result.not_pair:
         #     draw_bbox(print.bbox, img, (255, 0, 0))
 
 
-        cv2.imwrite(path,img)
+        # cv2.imwrite(path,img)
+        # cv2.imwrite(path2, img2)
 
