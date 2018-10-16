@@ -15,4 +15,5 @@ img
 *.JPG
 *.jpeg
 Arithmetic_Func_detection_for_CTPN_v1
-Arithmetic_Func_detection_for_CTPN_v2
+Arithmetic_Func_detection_for_CTPN_v2/*
+Arithmetic_Func_detection_for_CTPN_v2/lib
