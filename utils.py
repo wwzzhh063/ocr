@@ -16,7 +16,7 @@ import skimage
 
 ont_hot = config.ONE_HOT
 
-
+not_in = []
 def get_distance(data1, data2):
     points = zip(data1, data2)
     diffs_squared_distance = [pow(a - b, 2) for (a, b) in points]
@@ -108,6 +108,8 @@ class DataSet(object):
                 max_length = len(labels)
             for y,char in enumerate(labels):
                 index.append([x,y])
+                if ont_hot.get(char) == None:
+                    print(char)
                 value.append(ont_hot.get(char))
 
         shape = np.array([batch_size,max_length],dtype=np.int32)
@@ -115,7 +117,8 @@ class DataSet(object):
         try:
             value = np.array(value,dtype=np.int32)
         except:
-            print(label_list)
+            # print(label_list)
+            pass
 
         return [index,value,shape]
 
@@ -303,13 +306,13 @@ class DataSet(object):
 # test()
 # #
 # print (os.environ['HOME'])
-# dataset = DataSet()
-# generator = dataset.train_data_generator(32)
-# while True:
-#     images, labels, wides,length ,epoch= next(generator)
-#     if epoch==1:
-#         break
-#     print('aa')
+dataset = DataSet()
+generator = dataset.train_data_generator(32)
+while True:
+    images, labels, wides,length ,epoch= next(generator)
+    if epoch==1:
+        break
+    # print('aa')
 #
 # images, labels, wides,length = dataset.create_val_data()
 # print('a')

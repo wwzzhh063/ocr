@@ -187,24 +187,25 @@ class Img_ALL_BBox(object):
         self.create_big_img(self.pair,self.print_word,self.hand_word)
         pair,_ = get_pair_by_distance2(self.merge,self.not_pair)
         self.create_big_img2(pair,self.merge,self.not_pair)
-        for bbox in self.all_box.copy():
-            bbox.state =  eval_label(bbox.label)
-            if bbox.state == 'problem':
-                self.all_box.remove(bbox)
-                self.problem_box.append(bbox)
-
-        for bbox in self.print_word.copy():
-            bbox.state = eval_label(bbox.label)
-            if bbox.state != 'problem':
-                self.all_box.append(bbox)
-                self.print_word.remove(bbox)
-
-
-        for bbox in self.hand_word.copy():
-            bbox.state = eval_label(bbox.label)
-            if bbox.state != 'problem':
-                self.all_box.append(bbox)
-                self.hand_word.remove(bbox)
+        self.all_box = self.all_box+self.print_word+self.hand_word
+        # for bbox in self.all_box.copy():
+        #     bbox.state =  eval_label(bbox.label)
+        #     if bbox.state == 'problem':
+        #         self.all_box.remove(bbox)
+        #         self.problem_box.append(bbox)
+        #
+        # for bbox in self.print_word.copy():
+        #     bbox.state = eval_label(bbox.label)
+        #     if bbox.state != 'problem':
+        #         self.all_box.append(bbox)
+        #         self.print_word.remove(bbox)
+        #
+        #
+        # for bbox in self.hand_word.copy():
+        #     bbox.state = eval_label(bbox.label)
+        #     if bbox.state != 'problem':
+        #         self.all_box.append(bbox)
+        #         self.hand_word.remove(bbox)
 
 
 
@@ -362,7 +363,7 @@ def get_pair_by_distance(print_word_all,hand_word_all):
                 min_distance = distance
 
         try:
-            if in_same_line(print_word.bbox,hand_word_all[pair].bbox) == 'in':  #算是否在一行
+            if in_same_line(print_word.bbox,hand_word_all[pair].bbox) == 'in' and min_distance<(print_word.bbox[2]-print_word.bbox[0])/2:  #算是否在一行
                 print_hand[i] = pair
                 if hand_print.get(pair):
                     hand_print[pair].append(i)
@@ -433,6 +434,8 @@ def get_pair_by_distance2(print_word_all,hand_word_all):
 
     return print_hand,hand_print
 
+
+
 def get_centre(box):
     if len(box) == 4:
         point = (int((box[2]+box[0])/2), int((box[1] + box[3]) / 2))
@@ -490,7 +493,7 @@ if __name__ == '__main__':
     all_img = set_xml_data(xml_path)
 
 
-    for img_result in tqdm(all_img):
+    for i,img_result in tqdm(enumerate(all_img)):
         print_hand, hand_print = get_pair_by_distance(img_result.print_word,img_result.hand_word)
         img_result.pair = print_hand
         img = cv2.imread(img_result.img_path)
@@ -502,18 +505,13 @@ if __name__ == '__main__':
         elif img.shape[0]>1800:
             resize_list.append((854/img.shape[0],640/img.shape[0]))
 
-        resize_list = []
 
 
 
 
-
-
-
-
-        for pair in print_hand:
-            bbox_print = img_result.print_word[pair]
-            bbox_hand = img_result.hand_word[print_hand[pair]]
+        # for pair in print_hand:
+        #     bbox_print = img_result.print_word[pair]
+        #     bbox_hand = img_result.hand_word[print_hand[pair]]
 
             # cv2.line(img, get_box_centre(bbox_print.bbox), get_box_centre(bbox_hand.bbox), (0, 0, 0), 2)
 
@@ -530,22 +528,50 @@ if __name__ == '__main__':
 
         img_result.create_pair()
 
-        save_path = config.VAL_DATA
-        for i,bbox in enumerate(img_result.all_box):
+        save_path = config.CLEAN_DATA
+        for bbox in img_result.all_box:
+            cut_img_list = []
             cut_img = img[bbox.top:bbox.bottom+1,bbox.left:bbox.right+1]
+            cut_img_list.append(cut_img)
+            row_temp = bbox.right-bbox.left
+            column_temp = bbox.bottom-bbox.top
             label = bbox.label
-
-            if len(resize_list)>0:
-                cut_path = os.path.join(save_path, str(i) + '_' + '0' + '_' + label + '.jpg')
-                cv2.imwrite(cut_path, cut_img)
-                for j,resize in enumerate(resize_list):
-                    resize_img = cv2.resize(cut_img,None,fx=resize[1],fy=resize[0])
-                    cut_path = os.path.join(save_path,str(i)+'_'+str(j+1)+'_'+label+'.jpg')
-                    cv2.imwrite(cut_path,resize_img)
-
+            if len(label)>10:
+                cut_img_list.append(img[bbox.top - int(column_temp / 7):bbox.bottom + 1 + int(column_temp / 7),
+                                    bbox.left - int(row_temp / 5):bbox.right + 1 + int(row_temp / 5)])
             else:
-                cut_path = os.path.join(save_path, str(i) + '_' + label + '.jpg')
-                cv2.imwrite(cut_path, cut_img)
+                cut_img_list.append(img[bbox.top - int(column_temp / 7):bbox.bottom + 1 + int(column_temp / 7),
+                                    bbox.left - int(row_temp / 5):bbox.right + 1 + int(row_temp / 5)])
+                cut_img_list.append(img[bbox.top - int(column_temp / 7):bbox.bottom + 1 + int(column_temp / 7),
+                                    bbox.left - int(row_temp / 3):bbox.right + 1 + int(row_temp / 3)])
+            if config.ENHANCE:
+                for x,cut_img in enumerate(cut_img_list):
+                    if len(resize_list) > 0:
+                        cut_path = os.path.join(save_path,  '1_'+str(i) +'_'+ str(x)+'_' + '0' + '_' + label + '.jpg')
+                        cv2.imwrite(cut_path, cut_img)
+                        for j, resize in enumerate(resize_list):
+                            try:
+                                resize_img = cv2.resize(cut_img, None, fx=resize[1], fy=resize[0])
+                                cut_path = os.path.join(save_path,  '1_'+str(i)+'_'+str(x) + '_' + str(j + 1) + '_' + label + '.jpg')
+                                cv2.imwrite(cut_path, resize_img)
+                            except:
+                                pass
+
+                    else:
+                        cut_path = os.path.join(save_path, '1_'+ str(i) + '_'+str(x)+'_' + label + '.jpg')
+                        cv2.imwrite(cut_path, cut_img)
+            else:
+                if len(resize_list)>0:
+                    cut_path = os.path.join(save_path,  '1_'+str(i) + '_' + '0' + '_' + label + '.jpg')
+                    cv2.imwrite(cut_path, cut_img)
+                    for j,resize in enumerate(resize_list):
+                        resize_img = cv2.resize(cut_img,None,fx=resize[1],fy=resize[0])
+                        cut_path = os.path.join(save_path, '1_'+str(i)+'_'+str(j+1)+'_'+label+'.jpg')
+                        cv2.imwrite(cut_path,resize_img)
+
+                else:
+                    cut_path = os.path.join(save_path,  '1_'+str(i) + '_' + label + '.jpg')
+                    cv2.imwrite(cut_path, cut_img)
 
 
 

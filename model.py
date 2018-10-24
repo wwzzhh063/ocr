@@ -29,53 +29,11 @@ class CTC_Model():
 
         with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
                             normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
-            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,1],stride=[2,1],padding='VALID'):
+            with slim.arg_scope([slim.max_pool2d],kernel_size = [2,2],stride=[2,1],padding='VALID'):
 
                 conv1 = slim.conv2d(inputs,64,padding='VALID',scope='conv1')
                 conv2 = slim.conv2d(conv1,64,scope='conv2')
                 poo1 = slim.max_pool2d(conv2,kernel_size=[2,2],stride=[2,2],scope='pool1')
-
-                conv3 = slim.conv2d(poo1,128,scope='conv3')
-                conv4 = slim.conv2d(conv3,128,scope='conv4')
-                pool2 = slim.max_pool2d(conv4,scope='pool2')
-
-                conv5 = slim.conv2d(pool2,256,scope='conv5')
-                conv6 = slim.conv2d(conv5,256,scope='conv6')
-                pool3 = slim.max_pool2d(conv6,scope='pool3')
-
-                conv7 = slim.conv2d(pool3,512,scope='conv7')
-                conv8 = slim.conv2d(conv7,512,scope='conv8')
-                pool4 = slim.max_pool2d(conv8,kernel_size=[3,1],stride=[3,1],scope='pool4')
-
-                features = tf.squeeze(pool4, axis=1, name='features')
-
-                conv1_trim = tf.constant(2 * (3// 2),
-                                         dtype=tf.int32,
-                                      name='conv1_trim')
-
-
-                after_conv1 = widths - conv1_trim
-                after_pool1 = tf.floor_div(after_conv1, 2)
-                after_pool2 = after_pool1 -1
-                after_pool3 = after_pool2 -1
-                after_pool4 = after_pool3
-
-                sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
-                sequence_length = tf.maximum(sequence_length,1)
-
-                return features, sequence_length
-
-    def base_conv_layer2(self,inputs,widths,is_training):
-        batch_norm_params = {'is_training': is_training, 'decay': 0.9
-            , 'updates_collections': None}
-
-        with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
-                            normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
-            with slim.arg_scope([slim.max_pool2d],kernel_size=[2,2],stride=[2,1],padding='VALID'):
-
-                conv1 = slim.conv2d(inputs,64,padding='VALID',scope='conv1')
-                conv2 = slim.conv2d(conv1,64,scope='conv2')
-                poo1 = slim.max_pool2d(conv2,stride=[2,2],scope='pool1')
 
                 conv3 = slim.conv2d(poo1,128,scope='conv3')
                 conv4 = slim.conv2d(conv3,128,scope='conv4')
@@ -196,11 +154,6 @@ class CTC_Model():
         return logits ,sequence_length
 
 
-    def crnn2(self,inputs, width,is_training):
-        features, sequence_length = self.base_conv_layer2(inputs, width,is_training)
-        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT),512)
-        return logits ,sequence_length
-
 
 
     def ctc_loss_layer(self,rnn_logits, sequence_labels, sequence_length):
@@ -242,7 +195,7 @@ class CTC_Model():
             label_length = tf.placeholder(tf.int32,[None])
             is_training = tf.placeholder(tf.bool)
 
-            logits, sequence_length =self.crnn2(inputs,width,is_training)
+            logits, sequence_length =self.crnn(inputs,width,is_training)
 
             loss = self.ctc_loss_layer(logits, sequence_label, sequence_length)
 
@@ -351,18 +304,24 @@ class CTC_Model():
         is_training = tf.placeholder(tf.bool)
         logits, sequence_length = self.crnn(inputs, width,is_training)
 
-        decoder, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
+        # decoder, probably = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
+        decoder, probably = tf.nn.ctc_beam_search_decoder(logits,
+                                      sequence_length,
+                                      beam_width=128,
+                                      top_paths=1,
+                                      merge_repeated=False)
         decoder = decoder[0]
 
         dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
                                            sparse_values=decoder.values,default_value = -1)
+
 
         with tf.Session() as sess:
 
             saver = tf.train.Saver(tf.global_variables())
             saver.restore(sess,config.MODEL_SAVE)
 
-            sentence =sess.run(dense_decoder,feed_dict={inputs:image,width:wides,is_training:False})
+            sentence,probably_ =sess.run([dense_decoder,probably],feed_dict={inputs:image,width:wides,is_training:False})
 
             sentence = sentence.tolist()
 
@@ -389,7 +348,7 @@ class CTC_Model():
         is_training = tf.placeholder(tf.bool)
         logits, sequence_length = self.crnn(inputs, width, is_training)
 
-        decoder, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
+        decoder, probably = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
         decoder = decoder[0]
 
         dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
@@ -440,9 +399,9 @@ class CTC_Model():
 #
 #
 
-# model = CTC_Model()
-# model.train()
-# model.output('/home/wzh/ocr/0.jpg')
+model = CTC_Model()
+model.train()
+# model.output('/home/wzh/ocr/Screenshot from 2018-10-23 16-08-06.png')
 # # model.analyze_result('/home/wzh/analyze')
 
 # inputs = tf.Variable(tf.zeros([1,32,120,1]))
