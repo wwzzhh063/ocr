@@ -71,8 +71,11 @@ class DataSet(object):
             # seq_len.append(len(label[i]))
             target_input[i][0] = 0  # 第一个为GO
             for j in range(len(label_list[i])):
-                target_input[i][j + 1] = config.ONE_HOT[label_list[i][j]]
-                target_out[i][j] = config.ONE_HOT[label_list[i][j]]
+                try:
+                    target_input[i][j + 1] = config.ONE_HOT[label_list[i][j]]
+                    target_out[i][j] = config.ONE_HOT[label_list[i][j]]
+                except:
+                    print('a')
             target_out[i][len(label_list[i])] = 1
         return target_input, target_out,label_list
 
@@ -118,6 +121,8 @@ class DataSet(object):
 
             yield images,target_input, target_out,label_list,epoch
 
+
+
     def create_val_data(self):
 
         val_data = self.val_data
@@ -129,10 +134,7 @@ class DataSet(object):
             else:
                 end = (i + 1) * config.BATCH_SIZE
             images, _ = self.get_imges(val_data[i*config.BATCH_SIZE:end])
-            try:
-                target_input, target_out, label_list = self.get_labels(val_data[i*config.BATCH_SIZE:end])
-            except:
-                print('a')
+            target_input, target_out, label_list = self.get_labels(val_data[i*config.BATCH_SIZE:end])
             all_val_data.append((images, target_input, target_out, label_list))
             i = i + 1
         return all_val_data
@@ -165,7 +167,9 @@ class DataSet(object):
 # test()
 # #
 # print (os.environ['HOME'])
-# dataset = DataSet()
+dataset = DataSet()
+a = dataset.create_val_data()
+print('a')
 # generator = dataset.train_data_generator(config.BATCH_SIZE)
 # while True:
 #     images, target_input, target_out,epoch = next(generator)
