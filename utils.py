@@ -46,6 +46,9 @@ def in_same_line(print_bbox,hand_bbox):
         centre_print_bbox =  (print_bbox[3] + print_bbox[5]) / 2
 
     if len(hand_bbox) == 4:
+        if (print_bbox[1] >= hand_bbox[1] and print_bbox[3]<= hand_bbox[3]) or (hand_bbox[1]>= print_bbox[1] and hand_bbox[3]<=print_bbox[3]):
+            return 'in'
+
         if centre_print_bbox>hand_bbox[1] and centre_print_bbox<hand_bbox[3]:
             return 'in'
         else:
@@ -83,6 +86,19 @@ def pre_to_output(sentence):
     result = ''.join(list(map(lambda x: decode.get(x), sentence[0])))
 
     return result
+
+
+def draw_pair(pairs,result_list1,result_list2,img,color):
+    for pair in pairs:
+        reuslt1 = result_list1[pair]
+        result2 = result_list2[pairs[pair]]
+
+        cv2.line(img, reuslt1.centre, result2.centre, color, 2)
+        cv2.circle(img, reuslt1.centre, radius=20, color=(0, 255, 0), thickness=-1)
+        cv2.circle(img, result2.centre, radius=20, color=(0, 255, 0), thickness=-1)
+
+
+    # cv2.line(img, get_right(bbox_print.bbox), get_left(bbox_hand.bbox), (0, 0, 0), 2)
 
 
 
@@ -125,6 +141,10 @@ class DataSet(object):
     def image_normal(self,image):
         if image.shape[0]!=32:
             image = cv2.resize(image,(int(image.shape[1]/image.shape[0]*32),32))
+        if image.shape[1] < 10:
+            image = cv2.resize(image, (10, 32))
+        if image.shape[1]>250:
+            image = cv2.resize(image,(250,32))
         image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
         image = image/255*2-1
         return image
@@ -167,6 +187,8 @@ class DataSet(object):
             image = cv2.imread(path)
             image_enhance = image.copy()
             image = self.image_normal(image)
+            # if image.shape[1]>250:
+            #     print('a')
             images_wide.append(image.shape[1])
             image_list.append(image)
             if config.DATA_ENHANCE:
@@ -306,12 +328,15 @@ class DataSet(object):
 # test()
 # #
 # print (os.environ['HOME'])
-dataset = DataSet()
-generator = dataset.train_data_generator(32)
-while True:
-    images, labels, wides,length ,epoch= next(generator)
-    if epoch==1:
-        break
+# dataset = DataSet()
+# generator = dataset.train_data_generator(32)
+# while True:
+#     images, labels, wides,length ,epoch= next(generator)
+#     if images.shape[2]>250:
+#         print(images.shape[2])
+#     # print(images.shape[2])
+#     if epoch==1:
+#         break
     # print('aa')
 #
 # images, labels, wides,length = dataset.create_val_data()

@@ -12,8 +12,22 @@ from tensorflow.contrib.seq2seq import ScheduledEmbeddingTrainingHelper
 from utils import DataSet
 import random
 import os
+from math import log
+from numpy import array
+from numpy import argmax
+import time
+from easytest import beam_search_decoder
+os.environ['CUDA_VISIBLE_DEVICES']='1'
+# import pipline
+import re
 
-os.environ['CUDA_VISIBLE_DEVICES']='0'
+# def merge(result):
+#     result_list = result.split(' ')
+#     for result in result_list:
+
+                
+
+
 
 
 
@@ -128,7 +142,7 @@ class CTC_Model():
         return rnn_output_stack,enc_state
 
 
-    def rnn_layers(self,features, sequence_length, num_classes,units):
+    def rnn_layers(self,features, sequence_length, num_classes,units,is_training):
 
         logit_activation = tf.nn.relu
         weight_initializer = tf.contrib.layers.variance_scaling_initializer()
@@ -139,18 +153,20 @@ class CTC_Model():
             rnn_sequence = tf.transpose(features, perm=[1, 0, 2], name='time_major')
             rnn1 ,_ = self.rnn_layer(rnn_sequence, sequence_length, units, 'bdrnn1')
             rnn2 ,_= self.rnn_layer(rnn1, sequence_length, units, 'bdrnn2')
-            rnn_logits = tf.layers.dense(rnn2, num_classes + 1,
+            drop_out = slim.dropout(rnn2, 0.7, is_training=is_training, scope='dropout')
+            rnn_logits = tf.layers.dense(drop_out, num_classes + 1,
                                          activation=logit_activation,
                                          kernel_initializer=weight_initializer,
                                          bias_initializer=bias_initializer,
                                          name='logits')
+            rnn_logits = slim.dropout(rnn_logits, 0.7, is_training=is_training, scope='dropout')
 
             return rnn_logits
 
 
     def crnn(self,inputs, width,is_training):
         features, sequence_length = self.base_conv_layer(inputs, width,is_training)
-        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT),config.RNN_UNITS)
+        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT),config.RNN_UNITS,is_training)
         return logits ,sequence_length
 
 
@@ -165,27 +181,46 @@ class CTC_Model():
         return loss
 
 
-    def error(self,logits,sequence_length,sequence_label,label_length,greedy_decoder=True):
+    def error(self,logits,sequence_length,sequence_label,label_length,greedy_decoder=False):
         if greedy_decoder:
             predictions, _ = tf.nn.ctc_greedy_decoder(logits,sequence_length,merge_repeated=True)
         else:
 
-            predictions, _ = tf.nn.ctc_beam_search_decoder(logits,sequence_length,beam_width=128,top_paths=1,merge_repeated=True)
+            predictions, _ = tf.nn.ctc_beam_search_decoder(logits,sequence_length,beam_width=10,top_paths=5,merge_repeated=False)
+
 
         hypothesis = tf.cast(predictions[0], tf.int32)  # for edit_distance
+        hypothesis2 = tf.cast(predictions[1], tf.int32)
+        hypothesis3 = tf.cast(predictions[2],tf.int32)
+
         label_errors = tf.edit_distance(hypothesis, sequence_label, normalize=False)
+        label_errors2 = tf.edit_distance(hypothesis2, sequence_label, normalize=False)
+        label_errors3 = tf.edit_distance(hypothesis3, sequence_label, normalize=False)
+
         sequence_errors = tf.count_nonzero(label_errors, axis=0)
+
+        label_errors_top3 = tf.minimum(label_errors,label_errors2)
+        label_errors_top3 = tf.minimum(label_errors_top3,label_errors3
+                                       )
+        sequence_errors_top3 = tf.count_nonzero(label_errors_top3, axis=0)
+
         total_label_error = tf.reduce_sum(label_errors)
         total_labels = tf.reduce_sum(label_length)
         label_error = tf.truediv(total_label_error,
                                  tf.cast(total_labels, tf.float32),
                                  name='label_error')
+
         sequence_error = tf.truediv(tf.cast(sequence_errors, tf.int32),
                                     tf.shape(label_length)[0],
                                     name='sequence_error')
+
+        sequence_errors_top3 = tf.truediv(tf.cast(sequence_errors_top3, tf.int32),
+                                    tf.shape(label_length)[0],
+                                    name='sequence_error_top3')
+
         tf.summary.scalar('label_error',label_error)
         tf.summary.scalar('sequence_error',sequence_error)
-        return 1-label_error,1-sequence_error
+        return 1-label_error,1-sequence_error,1-sequence_errors_top3
 
 
     def train(self):
@@ -199,14 +234,14 @@ class CTC_Model():
 
             loss = self.ctc_loss_layer(logits, sequence_label, sequence_length)
 
-            label_error,sequence_error = self.error(logits,sequence_length,sequence_label,label_length)
+            label_error,sequence_error,sequence_errors_top3 = self.error(logits,sequence_length,sequence_label,label_length)
 
             # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             # with tf.control_dependencies(update_ops):
             #     optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
-            tf.train.MomentumOptimizer
-            # optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
-            optimizer = tf.train.MomentumOptimizer(config.LEARN_RATE,0.9).minimize(loss)
+            # tf.train.MomentumOptimizer
+            optimizer = tf.train.AdamOptimizer(config.LEARN_RATE).minimize(loss)
+            # optimizer = tf.train.MomentumOptimizer(config.LEARN_RATE,0.9).minimize(loss)
 
             dataset = utils.DataSet()
             train_generator = dataset.train_data_generator(config.BATCH_SIZE)
@@ -221,9 +256,9 @@ class CTC_Model():
             with tf.Session() as sess:
                 sess.run(tf.global_variables_initializer())
 
-                # if os.path.exists(config.MODEL_SAVE.replace('ctc.ckpt','')):
-                #     saver.restore(sess,config.MODEL_SAVE)
-                #     print("restore")
+                if os.path.exists(config.MODEL_SAVE.replace('ctc.ckpt','')):
+                    saver.restore(sess,config.MODEL_SAVE)
+                    print("restore")
 
                 merged = tf.summary.merge_all()
                 writer_train = tf.summary.FileWriter(ctc_train_path, sess.graph)
@@ -249,7 +284,7 @@ class CTC_Model():
 
 
                         train_loss,train_label_error,train_sequence_error, train_log = sess.run([loss,label_error,sequence_error, merged], feed_dict=feeddict_train)
-                        label_error_val, sequence_error_val,val_log = sess.run([label_error, sequence_error,merged],feed_dict=feeddict_val)
+                        label_error_val, sequence_error_val,sequence_errors_top3_val,val_log = sess.run([label_error, sequence_error,sequence_errors_top3,merged],feed_dict=feeddict_val)
 
                         writer_train.add_summary(train_log, i)
                         writer_val.add_summary(val_log, i)
@@ -258,6 +293,7 @@ class CTC_Model():
                         print('train_seq_acc{}'.format(train_sequence_error))
                         print('val_label_acc{}'.format(label_error_val))
                         print('val_seq_acc{}'.format(sequence_error_val))
+                        print('val_seq_top3_acc{}'.format(sequence_errors_top3_val))
                         print('epoch{}'.format(epoch))
                         print('----------------------------------------------------------------------------------------------------------------')
                     #
@@ -266,28 +302,34 @@ class CTC_Model():
 
 
                     if i%1000==0:
-                        label_error_val_all, sequence_error_val_all = 0,0
+                        label_error_val_all, sequence_error_val_all,sequence_error_val_all_top3 = 0,0,0
                         j =0
                         for i in range(len(all_val_data)):
                             images_val, labels_val, width_val, length_val = all_val_data[i]
+                            if i%500 == 0:
+                                print(i)
 
                             feeddict_val = {inputs: images_val,
                                             sequence_label: (labels_val[0], labels_val[1], labels_val[2]),
                                             width: width_val, label_length: length_val, is_training: False}
 
-                            label_error_val, sequence_error_val, val_log = sess.run(
-                                [label_error, sequence_error, merged], feed_dict=feeddict_val)
+                            label_error_val, sequence_error_val, sequence_errors_top3_val,val_log = sess.run(
+                                [label_error, sequence_error,sequence_errors_top3, merged], feed_dict=feeddict_val)
                             label_error_val_all = label_error_val_all+label_error_val
                             sequence_error_val_all = sequence_error_val_all+sequence_error_val
+                            sequence_error_val_all_top3 = sequence_error_val_all + sequence_errors_top3_val
                             j=j+1
                         label_error_val_all = label_error_val/j
                         sequence_error_val_all = sequence_error_val_all/j
+                        sequence_error_val_all_top3 = sequence_error_val_all_top3 / j
                         f = open('log.txt','a')
                         f.write('val_label_acc_all{}'.format(label_error_val_all))
                         f.write('val_seq_acc_all{}'.format(sequence_error_val_all))
+                        f.write('val_seq_acc_all_top3{}'.format(sequence_error_val_all_top3))
                         f.write('----------------------------------------------------------------------------------------------------------------')
                         print('val_label_acc_all{}'.format(label_error_val_all))
                         print('val_seq_acc_all{}'.format(sequence_error_val_all))
+                        print('val_seq_acc_all_top3{}'.format(sequence_error_val_all_top3))
                         print('----------------------------------------------------------------------------------------------------------------')
                         print(
                             '----------------------------------------------------------------------------------------------------------------')
@@ -304,16 +346,31 @@ class CTC_Model():
         is_training = tf.placeholder(tf.bool)
         logits, sequence_length = self.crnn(inputs, width,is_training)
 
-        # decoder, probably = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
-        decoder, probably = tf.nn.ctc_beam_search_decoder(logits,
-                                      sequence_length,
-                                      beam_width=128,
-                                      top_paths=1,
-                                      merge_repeated=False)
-        decoder = decoder[0]
+        decoder_greey, probably_greedy = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
+        with tf.device('/cpu:0'):
+            decoders, probably = tf.nn.ctc_beam_search_decoder(logits,
+                                          sequence_length,
+                                          beam_width=20,
+                                          top_paths=5,
+                                          merge_repeated=False)
 
-        dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
-                                           sparse_values=decoder.values,default_value = -1)
+
+        decoder_list=[]
+
+        for decoder in decoders:
+            dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
+                                               sparse_values=decoder.values, default_value=-1)
+            decoder_list.append(dense_decoder)
+
+        # classs = tf.argmax(logits,-1)
+
+        # classs = tf.squeeze(classs,axis=-1)
+
+        logits = tf.nn.softmax(logits)
+
+
+
+        # classs = tf.nn.top_k(logits,10)
 
 
         with tf.Session() as sess:
@@ -321,16 +378,60 @@ class CTC_Model():
             saver = tf.train.Saver(tf.global_variables())
             saver.restore(sess,config.MODEL_SAVE)
 
-            sentence,probably_ =sess.run([dense_decoder,probably],feed_dict={inputs:image,width:wides,is_training:False})
+            t1 = time.time()
+            decoder_list,logits_,probably_ =sess.run([decoder_list,logits,probably],feed_dict={inputs:image,width:wides,is_training:False})
+            t2 = time.time()
+            print(t2 - t1)
 
-            sentence = sentence.tolist()
+
+            t3 = time.time()
+            _, _ = sess.run([decoder_greey, logits],
+                                             feed_dict={inputs: image, width: wides, is_training: False})
+            t4 = time.time()
+            print(t4-t3)
+
+            t5 = time.time()
+            logits_ = sess.run(logits,feed_dict={inputs:image,width:wides,is_training:False})
+            logits_ = logits_[:, 0, :]
+            logits_ = logits_[:, config.NUM_SIGN]
+            decoder_cpu = beam_search_decoder(logits_, 5)
+            t6 = time.time()
+            print(t6-t5)
+            for result in decoder_cpu:
+                def get_char(num):
+                    return config.DECODE[num]
+
+                result_0 = map(get_char, result[0])
+                print(''.join(result_0))
+                print(result[1])
+            print(
+                '------------------------------------------------------------------------------------------------------------')
+
+
 
             decode = dict(zip(config.ONE_HOT.values(),config.ONE_HOT.keys()))
 
-            result = ''.join(list(map(lambda x:decode.get(x),sentence[0])))
+            result_list = []
 
 
-        print(result)
+
+
+            for sentence in decoder_list:
+                sentence = sentence.tolist()
+                result = ''.join(list(map(lambda x:decode.get(x),sentence[0])))
+                result_list.append(result)
+
+
+
+        for i,result in enumerate(result_list):
+            print(result)
+
+
+
+
+
+
+
 
 
     def analyze_result(self,paths):
@@ -396,12 +497,15 @@ class CTC_Model():
 
 
 
+if __name__ == '__main__':
+    model = CTC_Model()
+    # model.output('9_149+10=199.jpg')
+#
 #
 #
 
-model = CTC_Model()
-model.train()
-# model.output('/home/wzh/ocr/Screenshot from 2018-10-23 16-08-06.png')
+    model.train()
+#
 # # model.analyze_result('/home/wzh/analyze')
 
 # inputs = tf.Variable(tf.zeros([1,32,120,1]))
@@ -410,3 +514,27 @@ model.train()
 
 
 # 0gaussian_53+45×95=3.jpg
+
+# 33-120+200=
+# 33+120+200=
+# 33-120+200
+# 32-120+200=
+# 333-120+200=
+# 39-120+200=
+# 3-120+200=
+# 33120+200=
+# ×33-120+200=
+# 33-120200=
+#
+#
+#
+# 3-120+20=
+# 3+120+20=
+# 3-120+20
+# 32-120+20=
+# 3-120+20=
+# 39-120+20=
+# 3-120+20=
+# 3120+20=
+# ×3-120+20=
+# 3-12020=

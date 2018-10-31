@@ -434,6 +434,8 @@ if __name__ == '__main__':
             # bottom_cell = layout_analysis.hand_list[column_pairs[top]]
             bottom_cell = layout_analysis.all_after_row_connect[column_pairs[top]]
             cv2.line(img,top_cell.centre,bottom_cell.centre,color=(0, 0, 255),thickness=thickness)
+            cv2.circle(img,top_cell.centre,radius = 20,color=(0,255,0),thickness = -1)
+            cv2.circle(img,bottom_cell.centre,radius = 20,color=(0,255,0),thickness=-1)
 
         # for bbox in img_result.print_word:
         #     draw_bbox(bbox.bbox,img2,(255,0,0))

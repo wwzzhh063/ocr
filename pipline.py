@@ -6,8 +6,8 @@ from config import Config as config
 import cv2
 
 from PIL import Image,ImageDraw,ImageFont
-sys.path.append('Arithmetic_Func_detection_for_CTPN_v2')
-from Arithmetic_Func_detection_for_CTPN_v2.ctpn import run
+sys.path.append('Arithmetic_Func_detection_for_CTPN_v2_5')
+from Arithmetic_Func_detection_for_CTPN_v2_5.ctpn import run
 
 import math
 import argparse
@@ -18,7 +18,66 @@ import os
 import re
 from inference import set_xml_data
 import Levenshtein
-from utils import bbbox_to_distance,in_same_line
+from utils import bbbox_to_distance,in_same_line,draw_pair
+from math import log
+import numpy as np
+
+os.environ['CUDA_VISIBLE_DEVICES']='1'
+
+def beam_search_decoder(data, k = 10):
+
+   sequences = [[list(), 0.0]]
+
+   # walk over each step in sequence
+
+   for row in data:
+
+       all_candidates = list()
+
+       # expand each current candidate
+
+       for i in range(len(sequences)):
+
+           seq, score = sequences[i]
+
+           for j in range(len(row)):
+               seq_ = seq.copy()
+               if seq and seq[-1] == j and j!=20 and seq[-1]!=20:
+                   if seq[-1] == 20:
+                       seq_.remove(20)
+                   candidate = [seq_, score + (-log(row[j]))]
+               else:
+                   if seq and seq[-1] == 20:
+                       seq_.remove(20)
+                   candidate = [seq_ + [j], score + (-log(row[j]))]
+
+
+
+               all_candidates.append(candidate)
+
+       # order all candidates by score
+
+       ordered = sorted(all_candidates, key=lambda tup:tup[1])
+
+       # select k best
+
+       # sequences = ordered[:k]
+
+       sequence_list = []
+       sequence_temp = []
+       for i,sequence in enumerate(ordered):
+           if i == 0:
+               sequence_list.append(sequence)
+               sequence_temp.append(sequence[0])
+           else:
+               if sequence[0] not in sequence_temp:
+                   sequence_list.append(sequence)
+                   sequence_temp.append(sequence[0])
+           if len(sequence_list) == k:
+               break
+       sequences = sequence_list
+
+   return sequences
 
 
 def row_iou(row1,row2):
@@ -65,6 +124,7 @@ class Result(object):
         self.type = type
         self.centre = (int((bbox[0]+bbox[2])/2),int((bbox[1]+bbox[3])/2))
         self.position = (-1,-1)
+        self.backup_output = []
 
 
     def set_result(self,result):
@@ -96,14 +156,21 @@ def row_get_pair_by_distance(print_cell_word_all,hand_word_all,min_value = 3.5):
         min_distance = 9999
         pair = -1
         for j,hand_word in enumerate(hand_word_all):               #算距离
+            if print_cell_word.bbox == [430, 507, 499, 555] and hand_word.bbox ==[498, 509, 525, 525]:
+                print('a')
             distance = bbbox_to_distance(print_cell_word.bbox,hand_word.bbox)
             if min_distance>distance :
                 pair = j
                 min_distance = distance
 
         try:
-            if in_same_line(print_cell_word.bbox,hand_word_all[pair].bbox) == 'in' and min_distance<(print_cell_word.bbox[2]-print_cell_word.bbox[0])/min_value \
-                    and column_iou(print_cell_word.bbox,hand_word_all[pair].bbox)<0.1:  #算是否在一行
+            if print_cell_word.bbox ==  [430, 507, 499, 555] and hand_word_all[pair].bbox == [498, 509, 525, 525]:
+                print('a')
+            if in_same_line(print_cell_word.bbox, hand_word_all[pair].bbox) == 'in' and (
+                    hand_word_all[pair].left - print_cell_word.right) < (
+                    print_cell_word.bbox[2] - print_cell_word.bbox[0]) / min_value and column_iou(print_cell_word.bbox,
+                                                                                                  hand_word_all[
+                                                                                                      pair].bbox) < 0.1:
                 print_cell_hand[i] = pair
                 if hand_print_cell.get(pair):
                     hand_print_cell[pair].append(i)
@@ -263,6 +330,19 @@ class All_Result(object):
         return self.row_pairs
 
 
+    def row_connect_test(self):
+        print_cell_hand = row_get_pair_by_distance(self.print_word, self.hand_word)
+        draw_pair(print_cell_hand,self.print_word,self.hand_word,self.img,(0,0,255))
+        print_cell_residue,hand_residue,merge = self.create_big_img(print_cell_hand, self.print_word, self.hand_word)
+        merge_print_cell = row_get_pair_by_distance(merge,print_cell_residue,10)
+        draw_pair(merge_print_cell,merge, print_cell_residue, self.img, (0, 255, 0))
+        merge_residue,print_cell_residue,merge = self.create_big_img(merge_print_cell,merge,print_cell_residue)
+        self.row_pairs = merge_residue+merge
+        self.hand_after_row_connect = hand_residue
+        self.print_after_row_connect = print_cell_residue
+        return self.row_pairs
+
+
     def column_connect(self):
         self.all_after_row_connect = self.row_pairs+self.hand_after_row_connect+self.print_after_row_connect
         self.column_pairs,_ = column_get_pair_by_distance(self.all_after_row_connect)
@@ -407,10 +487,10 @@ def draw_box(img,all_result,x_pro,y_pro):
             rgb = (255,0,0)
             cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
                           (int(result.right * x_pro), int(result.bottom * y_pro)), rgb, 4)
-    for result in all_result:
-        if result.state == 'problem':
-            rgb = (0,0,255)
-            cv2.rectangle(img,(int(result.left*x_pro),int(result.top*y_pro)),(int(result.right*x_pro),int(result.bottom*y_pro)),rgb,4)
+    # for result in all_result:
+    #     if result.state == 'problem':
+    #         rgb = (0,0,255)
+    #         cv2.rectangle(img,(int(result.left*x_pro),int(result.top*y_pro)),(int(result.right*x_pro),int(result.bottom*y_pro)),rgb,4)
 
 
 def draw_bbox(bbox,img,x_pro,y_pro,color):
@@ -418,14 +498,15 @@ def draw_bbox(bbox,img,x_pro,y_pro,color):
                   (int(bbox[2] * x_pro), int(bbox[3] * y_pro)), color, 4)
 
 def draw_result(img,all_result,x_pro,y_pro):
-    ttfont = ImageFont.truetype('SimSun.ttf',25)
+    ttfont = ImageFont.truetype('SimSun.ttf',50)
     img = Image.fromarray(img)
     draw = ImageDraw.Draw(img)
     for result in all_result:
-        if result.state == 'right':
-            draw.text((int(result.left*x_pro),int(result.top*y_pro)),result.output,fill='blue',font=ttfont)
+        if result.state != 'problem':
+            draw.text((int(result.left*x_pro),int(result.top*y_pro-50)),result.output,fill='blue',font=ttfont)
         else:
-            draw.text((int(result.left*x_pro),int(result.top*y_pro)),result.output,fill='blue',font=ttfont)
+            pass
+            # draw.text((int(result.left*x_pro),int(result.top*y_pro-50)),result.output,fill='blue',font=ttfont)
         # cv2.putText(img,result.output,(result.left,result.top),cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,0),2)
     return img
 
@@ -445,7 +526,7 @@ def create_sess():
             net, run_list = run.build_ctpn_model()
             saver = tf.train.Saver()
             saver.restore(sess1,
-                          'Arithmetic_Func_detection_for_CTPN_v2/checkpoints/VGGnet_fast_rcnn_iter_65000.ckpt')
+                          'Arithmetic_Func_detection_for_CTPN_v2_5/checkpoints/VGGnet_fast_rcnn_iter_48000.ckpt')
 
 
 
@@ -459,15 +540,38 @@ def create_sess():
             model = CTC_Model()
             logits, sequence_length = model.crnn(inputs, width, is_training)
 
-            decoder, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
-            decoder = decoder[0]
+            logits_ = tf.nn.softmax(logits)
+            #
+            # classs = tf.cast(logits_ > 0.95, tf.float32)
+            #
+            # logits = logits*classs
 
-            dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
-                                               sparse_values=decoder.values, default_value=-1)
+            decoders, probably = tf.nn.ctc_beam_search_decoder(logits,
+                                                              sequence_length,
+                                                              beam_width=21,
+                                                              top_paths=10,
+                                                              merge_repeated=False)
+
+            decodes_greedy, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
+            decodes_greedy = decodes_greedy[0]
+
+            dense_greedy_decoder = tf.sparse_to_dense(sparse_indices=decodes_greedy.indices, output_shape=decodes_greedy.dense_shape,
+                                               sparse_values=decodes_greedy.values, default_value=-1)
+
+            decoder_list = []
+
+            for decoder in decoders:
+
+                dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
+                                                   sparse_values=decoder.values, default_value=-1)
+                decoder_list.append(dense_decoder)
+
             saver = tf.train.Saver(tf.global_variables())
             saver.restore(sess2, config.MODEL_SAVE)
 
-            return sess1,sess2,net,run_list,dense_decoder,inputs,width,is_training
+
+
+            return sess1,sess2,net,run_list,decoder_list,inputs,width,is_training,logits_,sequence_length,dense_greedy_decoder
 
 
 def delete_pair_problem_result(label1,label2):
@@ -703,23 +807,79 @@ def eval_label(label):
 
 
 def revise_result(result):
-    state, revise_output, output = delete_top_or_bottom(result)
-    if state == 'right':
-        output = revise_output
-        return 'right',revise_output
-    if state == 'problem':
-        output, state = add_bracket(output)
-        if state == 'right':
-            return 'right',output
-    if state == 'error':
-        output = pro_problem_to_right(output)
+    if result == '6×5=30':
+        print('a')
+    # state, revise_output, output = delete_top_or_bottom(result)
+    state = eval_label(result)
+    revise_output = result
+    output = result
+    # if state == 'right':
+    #     output = revise_output
+    #     return 'right',revise_output
+    # if state == 'problem':
+    #     output, state = add_bracket(output)
+    #     if state == 'right':
+    #         return 'right',output
+    # if state == 'error':
+    #     output = pro_problem_to_right(output)
     return state,output
 
-def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_training):
+def batch_logits_to_output(logits,sequence_length):
+    # logits = logits[..., config.NUM_SIGN]
+    # logits = np.swapaxes(logits,0,1)
+    output_list = []
+    for i in range(logits.shape[0]):
+        sequence = sequence_length[i]
+        output = logits[i,:sequence,:]
+        output = beam_search_decoder(output)
+        result_list = []
+        for result in output:
+            def get_char(num):
+                return config.DECODE[num]
+            result = map(get_char,result[0])
+            # result = re.sub(r'([\d+-×÷=])(\1)+| ', r'\1', ''.join(result))
+            result = ''.join(result)
+            result_list.append(result)
+        output_list.append(result_list)
+
+    return output_list
+
+def logits_to_output(logits,sequence_length):
+
+    sequence = sequence_length
+    output = logits[:sequence,:]
+    output = beam_search_decoder(output)
+    result_list = []
+    for result in output:
+        def get_char(num):
+            return config.DECODE[num]
+        result = map(get_char,result[0])
+        # result = re.sub(r'([\d+-×÷=])(\1)+| ', r'\1', ''.join(result))
+        result = ''.join(result)
+        result_list.append(result)
+
+    return result_list
+
+
+def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_training,logits,sequence_length,decodes_greedy):
+
+    def sentence_to_output(sentence):
+        output = sentence.tolist()
+
+        decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
+
+        output = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x), y))).replace('－', '-'), output))
+
+        return output
+
+    tb = time.time()
     feed_dict, img_resized_shape, im_scales, bbox_scale = run.run_ctpn(img, net)
     out_put = sess1.run(run_list, feed_dict)
 
     bboxes,types = run.decode_ctpn_output(out_put, im_scales, bbox_scale, img_resized_shape)
+
+    te = time.time()
+    print('检测时间:{}'.format(te-tb))
 
     types2 = []
     for i,type in enumerate(types):
@@ -728,20 +888,37 @@ def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_trainin
         else:
             types2.append('print')
 
-
+    tb = time.time()
     all_result = All_Result(bboxes,img,types2)
     all_result.row_connect()
     all_result.column_connect()
     all_result.graph_to_forest()
     image,wides = all_result.create_input()
+    te = time.time()
+    print('版面分析:{}'.format(te-tb))
 
-    sentence = sess2.run(dense_decoder, feed_dict={inputs: image, width: wides, is_training: False})
 
-    output = sentence.tolist()
+    # logits,sequence_length = sess2.run([logits,sequence_length],feed_dict={inputs: image, width: wides, is_training: False})
+    # output_list = logits_to_output(logits,sequence_length)
+    tb = time.time()
+    logits, decodes_greedy,sequence_length = sess2.run([logits, decodes_greedy,sequence_length],
+                                        feed_dict={inputs: image, width: wides, is_training: False})
+    te = time.time()
+    print('识别时间:{}'.format(te-tb))
 
-    decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
+    tb = time.time()
+    output_list = sentence_to_output(decodes_greedy)
 
-    output = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x), y))).replace('－','-'), output))
+    # sentence_list = sess2.run(dense_decoder, feed_dict={inputs: image, width: wides, is_training: False})
+    # output_list = [sentence_to_output(sentence) for sentence in sentence_list]
+
+
+    logits = logits[..., config.NUM_SIGN]
+    logits = np.swapaxes(logits,0,1)
+
+
+
+
 
     problems = []
 
@@ -749,18 +926,42 @@ def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_trainin
     ave_high = 0
 
     for i, result in enumerate(all_result.all_after_row_connect):
-        result.output = output[i]
+
+        result.output = output_list[i]
+        #----------------------------------------------------------------beam_search
+        # result.output = output_list[0][i]
+        # result.backup_output = [output_[i] for output_ in output_list]
+        #-----------------------------------------------------------------
+        # result.output = output_list[i][0]
+        # result.backup_output = output_list[i]
         if result.type == 'merge':
             result.state,result.output = revise_result(result.output)
+            if result.state != 'right' and no_chinese(result.output):
+                result.backup_output = logits_to_output(logits[i],sequence_length[i])
+                for output in result.backup_output:
+                    state,output_temp = revise_result(output)
+                    if state == 'right':
+                        result.state = state
+                        result.output = output_temp
+                        break
+
+
             all_result.connect_result.append(result)
 
 
 
         elif result.type == 'print':
-            if '@' in result.output:
+            state,output = revise_result(result.output)
+            if state == 'right':
+                result.state = state
+                result.output = output
+                all_result.connect_result.append(result)
+            elif '@' in result.output:
                 all_result.fraction.append(result)
             else:
                 all_result.vertical.append(result)
+
+
 
     for result in all_result.vertical:
         # if result.output == '350-8×6+5×4':
@@ -768,107 +969,81 @@ def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_trainin
         bottom_list = []
         position = result.position
         forest = all_result.forest_list[position[0]]
-        for num in range(position[1]+1, len(forest)):
+        for num in range(0, len(forest)):
             bottom = forest[num]
             if bottom.type == 'print' or bottom.type == 'merge':
-                break
+                #break
+                continue
             else:
                 label = result.output.replace('=', '') + '=' + bottom.output.replace('=', '')
-
                 state, output = revise_result(label)
+                for result_output in result.backup_output:
+                    break_out = False
+                    for bottom_output in bottom.backup_output:
+                        label = result_output.replace('=', '') + '=' + bottom_output.replace('=', '')
+                        state, output = revise_result(label)
+                        if state == 'right':
+                            break_out = True
+                            break
+                    if break_out:
+                        break
+
                 bottom_list.append(bottom)
                 if state == 'right':
+                    result = Result([min(result.left,bottom.left),min(result.top,bottom.top),max(result.right,bottom.right),max(result.bottom,bottom.bottom)],
+                                    all_result.img,type='merge')
                     result.output = output
                     result.state = state
                     all_result.connect_result.append(result)
                     break
         if result.state != 'right':
             bottom_list.append(result)
-            result.left = min([bottom.left for bottom in bottom_list])
-            result.right =  max([bottom.right for bottom in bottom_list])
-            result.top = min([bottom.top for bottom in bottom_list])
-            result.bottom = max([bottom.bottom for bottom in bottom_list])
-            result.bbox = [result.left,result.top,result.right,result.bottom]
-            result.state = 'error'
-            result.output = ''
+            if no_chinese(result.output) and set('+-×÷=')&set(result.output) :
+                result.state = 'error'
+            else:
+                result.state = 'problem'
             all_result.connect_result.append(result)
+    te = time.time()
+    print('后处理时间{}'.format(te-tb))
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    #合并有问题的检测框-----------------------------------------------------------------------------------------用于单分类
-    # delete = []
-    # for i, problem1 in enumerate(temp):
-    #     problems_without = temp.copy()
-    #     problems_without.pop(i)
     #
-    #     for j, problem2 in enumerate(problems_without):
-    #         if  min(problem1.bottom, problem2.bottom) > max(problem1.top, problem2.top) \
-    #                 and problem2.left >= problem1.right and (problem2.left - problem1.right) < 10/bbox_scale and not set('*——×÷')&set(problem2.output):
-    #             state, revise_output, output = delete_pair_problem_result(problem1.output, problem2.output)
-    #             box = [min(problem1.left, problem2.left), min(problem1.top, problem2.top),
-    #                    max(problem1.right, problem2.right), max(problem1.bottom, problem2.bottom)]
-    #             result = Result(box, img)
-    #             result.state = state
-    #             result.revise_output = revise_output
-    #             result.output = output
+    # for result in all_result.vertical:
     #
-    #             if result.state == 'right':
-    #                 all_result.right_result.append(result)
-    #             elif result.state == 'error' :
-    #                 all_result.error_result.append(result)
+    #     bottom_list = []
+    #     position = result.position
+    #     forest = all_result.forest_list[position[0]]
+    #     for num in range(position[0]+1, len(forest)):
+    #         bottom = forest[num]
+    #         if bottom.type == 'print' or bottom.type == 'merge':
+    #             break
     #
+    #         else:
+    #             label = result.output.replace('=', '') + '=' + bottom.output.replace('=', '')
     #
-    #             try:
-    #                 all_result.problem_result.remove(problem1)
-    #                 all_result.problem_result.remove(problem2)
-    #             except:
-    #                 pass
-
-    # for i,problem in enumerate(all_result.problem_result.copy()):
+    #             state, output = revise_result(label)
+    #             bottom_list.append(bottom)
+    #             if state == 'right':
+    #                 result.output = output
+    #                 result.state = state
+    #                 all_result.connect_result.append(result)
+    #                 break
     #
-    #     output,state = add_bracket(problem.output)
-    #     if state == 'right':
-    #         all_result.problem_result.remove(problem)
-    #         problem.revise_output = output
-    #         all_result.right_result.append(problem)
-    #     elif state == 'error':
-    #         all_result.problem_result.remove(problem)
-    #         problem.state = state
-    #         problem.output = output
-    #         all_result.error_result.append(problem)
-    # #
-    # #
-    # #
-    # #
-    # #
-    # all_result.connect_result.extend(all_result.problem_result)
-    # all_result.connect_result.extend(all_result.right_result)
-    # all_result.connect_result.extend(all_result.error_result)
-
-            # pass
+    #     if result.state != 'right':
+    #         bottom_list.append(result)
+    #         result.left = min([bottom.left for bottom in bottom_list])
+    #         result.right =  max([bottom.right for bottom in bottom_list])
+    #         result.top = min([bottom.top for bottom in bottom_list])
+    #         result.bottom = max([bottom.bottom for bottom in bottom_list])
+    #         result.bbox = [result.left,result.top,result.right,result.bottom]
+    #         result.state = 'error'
+    #         all_result.connect_result.append(result)
 
 
-    # for result in all_result.connect_result.copy():
-    #     if len(set(result.output)&set('+-×÷()=')) <=1:
-    #         all_result.connect_result.remove(result)
 
-    return all_result,bboxes
+
+    return all_result,bboxes,types
 
 
 def area(point1,point2):
@@ -889,6 +1064,27 @@ def get_iou(box1,box2):
 
     return area3/(area1+area2-area3)
 
+def pair_check(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_training):
+
+    feed_dict, img_resized_shape, im_scales, bbox_scale = run.run_ctpn(img, net)
+    out_put = sess1.run(run_list, feed_dict)
+
+    bboxes,types = run.decode_ctpn_output(out_put, im_scales, bbox_scale, img_resized_shape)
+
+    types2 = []
+    for i,type in enumerate(types):
+        if type == 1:
+            types2.append('hand')
+        else:
+            types2.append('print')
+
+
+    all_result = All_Result(bboxes,img,types2)
+    all_result.row_connect_test()
+    cv2.imwrite('xxx.jpg',all_result.img)
+    cv2.imshow('a',all_result.img)
+    cv2.waitKey()
+
 
 
 def evaluate():
@@ -906,7 +1102,7 @@ def evaluate():
         img_result.create_pair()
         img = img_result.img
 
-        result = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training)
+        result,_,_ = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training)
 
         result_pair = {}
 
@@ -1009,7 +1205,45 @@ def evaluate():
 
         # img.save('/home/wzh/test2/'+str(i)+'_.jpg')
 
+def no_chinese(check_str):
+    for ch in check_str:
+        if u'\u4e00' <= ch <= u'\u9fff':
+            return False
+    return True
 
+
+def result_test(all_img_path,save_path,model='pipline'):
+    if model == 'pipline':
+        sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training,logits,sequence_length,decodes_greedy = create_sess()
+        for img_path in tqdm(glob(os.path.join(all_img_path,'*'))):
+            img = cv2.imread(img_path)
+            img_save_path = os.path.join(save_path,img_path.split('/')[-1].split('.')[0])
+            if not os.path.exists(img_save_path):
+                os.mkdir(img_save_path)
+            all_result,bboxes,types = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training,logits,sequence_length)
+            for i,result in enumerate(all_result.connect_result):
+                if result.state != 'right' and no_chinese(result.output):
+                    cv2.imwrite(os.path.join(img_save_path,str(i)+'_'+result.output+'.jpg'),result.img)
+
+            x_pro = 3024 / img.shape[1]
+            y_pro = 4031 / img.shape[0]
+            img = cv2.resize(img, (3024, 4032))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img2 = img.copy()
+            draw_box(img, all_result.connect_result, x_pro, y_pro)
+            img = draw_result(img, all_result.connect_result, x_pro, y_pro)
+
+            for i,box in enumerate(bboxes):
+                if types[i] == 1:
+                    color = (0,255,0)
+                else:
+                    color = (0,0,255)
+                draw_bbox(box, img2, x_pro, y_pro, color)
+            big_img_path = os.path.join(save_path, img_path.split('/')[-1])
+            img.save(big_img_path.replace('.', '_.'))
+            cv2.imwrite(big_img_path.replace('.', '_2.'), img2)
+    else:
+        pass
 
 
 
@@ -1025,47 +1259,63 @@ if __name__ == '__main__':
 # [2271, 1363, 2710, 1448]
 #     a = get_iou([2246, 1660, 2662, 1765],[2271, 1363, 2710, 1448])
 #     print(a)
-
-
-
-
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('path',help='image path',type=str)
-    args = parser.parse_args()
-    img = cv2.imread(args.path)
+#     t1 = time.time()
+#     result_test('/home/wzh/第一批/img_val','/home/wzh/test_1_self_10')
+#     t2 = time.time()
+#     print(t1-t2)
     #
+    # path = '/home/wzh/第一批/img_val/IMG_5062.JPG'
 
-    sess1, sess2, net, run_list, dense_decoder,inputs,width,is_training = create_sess()
-    result,bboxes = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training)
-    x_pro = 3024 / img.shape[1]
-    y_pro = 4031 / img.shape[0]
-    img = cv2.resize(img, (3024, 4032))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img2 = img.copy()
-    draw_box(img, result.connect_result, x_pro, y_pro)
-    img = draw_result(img, result.connect_result, x_pro, y_pro)
-
-    for box in bboxes:
-        draw_bbox(box,img2, x_pro, y_pro,(0,0,255))
-    img.show()
-    img.save(args.path.replace('.','_.'))
-    cv2.imwrite(args.path.replace('.','_2.'),img2)
-
-
-
-
-
-
-
-    # sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training = create_sess()
-    # img_path = glob('/home/wzh/test16/*')
-    # for path in tqdm(img_path):
-    #     img = cv2.imread(path)
-    #     save_path = path.replace('test16','pipline_result/test16_3')
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('path',help='image path',type=str)
+    # args = parser.parse_args()
+    # img = cv2.imread(args.path)
+    # # #
+    # #
+    # sess1, sess2, net, run_list, dense_decoder,inputs,width,is_training ,logits,sequence_length,decodes_greedy= create_sess()
+    # # pair_check(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training)
+    # time1 = time.time()
+    # result,bboxes,types = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training,logits,sequence_length,decodes_greedy)
+    # time2 = time.time()
+    # print('总共耗时{}'.format(time2-time1))
+    # x_pro = 3024 / img.shape[1]
+    # y_pro = 4031 / img.shape[0]
+    # img = cv2.resize(img, (3024, 4032))
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # img2 = img.copy()
+    # draw_box(img, result.connect_result, x_pro, y_pro)
     #
     #
-    #     result = pipline(img.copy(),sess1, sess2, net, run_list, dense_decoder,inputs,width,is_training)
+    # for i,box in enumerate(bboxes):
+    #     if types[i] == 1:
+    #         color = (255,0,0)
+    #     else:
+    #         color = (0,255,0)
+    #     draw_bbox(box,img2, x_pro, y_pro,color)
+    #
+    # img = draw_result(img, result.connect_result, x_pro, y_pro)
+    # img.show()
+    # img.save(args.path.replace('.','_.'))
+    # cv2.imwrite(args.path.replace('.','_2.'),img2)
+
+
+
+
+
+
+
+    sess1, sess2, net, run_list, dense_decoder,inputs,width,is_training ,logits,sequence_length,decodes_greedy= create_sess()
+    img_path = glob('/home/wzh/test16/*')
+    for path in tqdm(img_path):
+        img = cv2.imread(path)
+        save_path = path.replace('test16','pipline_result/test16_3')
+
+        sess1, sess2, net, run_list, dense_decoder,inputs,width,is_training ,logits,sequence_length,decodes_greedy= create_sess()
+        time1 = time.time()
+        result,bboxes,types = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training,logits,sequence_length,decodes_greedy)
+        time2 = time.time()
+        print('总共耗时{}'.format(time2-time1))
+        print('------------------------------------------------------------------------------------------------------------------------------------')
     #     x_pro = 3024 / img.shape[1]
     #     y_pro = 4031 / img.shape[0]
     #     img = cv2.resize(img, (3024, 4032))
@@ -1083,4 +1333,7 @@ if __name__ == '__main__':
     #     # img = draw_result(img, result.results, x_pro, y_pro)
     #
     #     img.save(save_path)
-    #
+    #[498, 509, 525, 525] [430, 507, 499, 555]
+    # in_same_line([430, 507, 499, 555],[430, 507, 499, 555]) == 'in' and (
+    #                 498 - 499) < (
+    #                 499 - 430) / 10 and column_iou([430, 507, 499, 555],[498, 509, 525, 525]) < 0.1
