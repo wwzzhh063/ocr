@@ -2,9 +2,33 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e215c16c-3fce-4e13-857a-fcd5e9473ace" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/easytest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/demo.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/ctpn/demo.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/ctpn/demo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/ctpn/demo_pb.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/ctpn/generate_pb.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/ctpn/train_net.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/data/VOCdevkit2007" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/fast_rcnn/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/fast_rcnn/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/prepare_training_data/TEXTVOC/TEXTVOC" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/bbox.c" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/bbox.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/bbox.cpython-35m-x86_64-linux-gnu.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/bbox.cpython-35m-x86_64-linux-gnu.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/bbox.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/bbox.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_bbox.cpython-35m-x86_64-linux-gnu.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_bbox.cpython-35m-x86_64-linux-gnu.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_bbox.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_bbox.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_nms.c" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_nms.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_nms.cpython-35m-x86_64-linux-gnu.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_nms.cpython-35m-x86_64-linux-gnu.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_nms.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/cython_nms.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/gpu_nms.c" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/gpu_nms.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/gpu_nms.cpython-35m-x86_64-linux-gnu.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/gpu_nms.cpython-35m-x86_64-linux-gnu.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/gpu_nms.so" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/gpu_nms.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/make.sh" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/make.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arithmetic_Func_detection_for_CTPN_v2_5/lib/utils/setup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -15,8 +39,8 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/ocr$easytest.coverage" NAME="easytest Coverage Results" MODIFIED="1540372330257" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$model.coverage" NAME="model Coverage Results" MODIFIED="1539685194586" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ocr$utils.coverage" NAME="utils Coverage Results" MODIFIED="1540372402892" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$utils.coverage" NAME="utils Coverage Results" MODIFIED="1541041846541" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ocr$model.coverage" NAME="model Coverage Results" MODIFIED="1541042067954" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$test.coverage" NAME="test Coverage Results" MODIFIED="1535714620005" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$minst_seeable.coverage" NAME="minst_seeable Coverage Results" MODIFIED="1535426913409" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ocr$mnist_to_num.coverage" NAME="mnist_to_num Coverage Results" MODIFIED="1535965040724" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -93,40 +117,41 @@
     <session id="1037738134">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.open.time.0" value="3" />
+          <entry key="project.closed" value="1" />
+          <entry key="project.open.time.0" value="5" />
           <entry key="project.open.time.1" value="2" />
           <entry key="project.open.time.5" value="2" />
           <entry key="project.open.time.6" value="1" />
-          <entry key="project.opened" value="8" />
+          <entry key="project.opened" value="10" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="gitignore" value="105" />
-          <entry key="py" value="3170" />
+          <entry key="gitignore" value="108" />
+          <entry key="py" value="3365" />
           <entry key="txt" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="76" />
+          <entry key="PLAIN_TEXT" value="79" />
           <entry key="Properties" value="31" />
-          <entry key="Python" value="3170" />
+          <entry key="Python" value="3365" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="gitignore" value="2" />
+          <entry key="gitignore" value="3" />
           <entry key="png" value="4" />
-          <entry key="py" value="26" />
+          <entry key="py" value="28" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Image" value="4" />
-          <entry key="PLAIN_TEXT" value="1" />
+          <entry key="PLAIN_TEXT" value="2" />
           <entry key="Properties" value="1" />
-          <entry key="Python" value="26" />
+          <entry key="Python" value="28" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.js.language.service.starts" />
@@ -135,11 +160,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="706">
-              <caret line="251" lean-forward="true" selection-start-line="251" selection-end-line="251" />
+            <state relative-caret-position="1725">
+              <caret line="321" lean-forward="true" selection-start-line="321" selection-end-line="321" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -148,10 +173,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/training/saver.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="36859">
+              <caret line="1310" selection-start-line="1310" selection-end-line="1310" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="638">
-              <caret line="27" column="26" selection-start-line="27" selection-start-column="26" selection-end-line="27" selection-end-column="26" />
+            <state relative-caret-position="725">
+              <caret line="25" column="64" selection-start-line="25" selection-start-column="64" selection-end-line="25" selection-end-column="64" />
             </state>
           </provider>
         </entry>
@@ -159,11 +193,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="552">
-              <caret line="72" column="47" lean-forward="true" selection-start-line="72" selection-start-column="47" selection-end-line="72" selection-end-column="47" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="884">
+              <caret line="40" lean-forward="true" selection-start-line="40" selection-end-line="40" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="493">
+              <caret line="17" column="39" selection-start-line="17" selection-start-column="39" selection-end-line="17" selection-end-column="39" />
             </state>
           </provider>
         </entry>
@@ -183,11 +223,20 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/minst_seeable.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="614">
+            <state relative-caret-position="667">
               <caret line="23" selection-start-line="23" selection-end-line="23" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/ops/rnn.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="8990">
+              <caret line="327" column="4" selection-start-line="327" selection-start-column="4" selection-end-line="327" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -236,11 +285,11 @@
         <option value="$PROJECT_DIR$/minst_seeable.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/mnist_to_num.py" />
-        <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/easytest.py" />
         <option value="$PROJECT_DIR$/config.py" />
+        <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/utils.py" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -278,7 +327,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$USER_HOME$/PycharmProjects/untitled" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -301,7 +350,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.utils">
+  <component name="RunManager" selected="Python.model">
     <configuration name="easytest" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ocr" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -421,9 +470,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.model" />
         <item itemvalue="Python.utils" />
         <item itemvalue="Python.easytest" />
-        <item itemvalue="Python.model" />
         <item itemvalue="Python.mnist_to_num" />
         <item itemvalue="Python.test" />
       </list>
@@ -446,13 +495,13 @@
     <frame x="130" y="-8" width="3710" height="2168" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2219768" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22694644" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3296875" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.29898557" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.39935932" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.39935932" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -477,18 +526,6 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/utils.py</url>
-          <line>171</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/utils.py</url>
-          <line>77</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -648,13 +685,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/training/saver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-88">
-          <caret line="1310" selection-start-line="1310" selection-end-line="1310" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.PyCharm2018.2/system/python_stubs/-1503419192/cv2/cv2/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="29">
@@ -715,20 +745,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="464">
-          <caret line="16" column="31" selection-start-line="16" selection-start-column="31" selection-end-line="16" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/mnist_to_num.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3596">
           <caret line="133" column="16" selection-start-line="133" selection-start-column="16" selection-end-line="133" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -739,13 +759,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/minst_seeable.py">
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/training/saver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="614">
-          <caret line="23" selection-start-line="23" selection-end-line="23" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="36859">
+          <caret line="1310" selection-start-line="1310" selection-end-line="1310" />
         </state>
       </provider>
     </entry>
@@ -759,30 +776,51 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config.py">
+    <entry file="file://$PROJECT_DIR$/minst_seeable.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="638">
-          <caret line="27" column="26" selection-start-line="27" selection-start-column="26" selection-end-line="27" selection-end-column="26" />
+        <state relative-caret-position="667">
+          <caret line="23" selection-start-line="23" selection-end-line="23" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils.py">
+    <entry file="file://$USER_HOME$/anaconda3/envs/python3/lib/python3.6/site-packages/tensorflow/python/ops/rnn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="552">
-          <caret line="72" column="47" lean-forward="true" selection-start-line="72" selection-start-column="47" selection-end-line="72" selection-end-column="47" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="8990">
+          <caret line="327" column="4" selection-start-line="327" selection-start-column="4" selection-end-line="327" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="725">
+          <caret line="25" column="64" selection-start-line="25" selection-start-column="64" selection-end-line="25" selection-end-column="64" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="706">
-          <caret line="251" lean-forward="true" selection-start-line="251" selection-end-line="251" />
+        <state relative-caret-position="1725">
+          <caret line="321" lean-forward="true" selection-start-line="321" selection-end-line="321" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="884">
+          <caret line="40" lean-forward="true" selection-start-line="40" selection-end-line="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="493">
+          <caret line="17" column="39" selection-start-line="17" selection-start-column="39" selection-end-line="17" selection-end-column="39" />
         </state>
       </provider>
     </entry>
