@@ -151,15 +151,16 @@ class CTC_Model():
         with tf.variable_scope("rnn"):
 
             rnn_sequence = tf.transpose(features, perm=[1, 0, 2], name='time_major')
+            rnn_sequence = slim.dropout(rnn_sequence, 0.7, is_training=is_training, scope='dropout1')
             rnn1 ,_ = self.rnn_layer(rnn_sequence, sequence_length, units, 'bdrnn1')
+            rnn1 = slim.dropout(rnn1, 0.7, is_training=is_training, scope='dropout2')
             rnn2 ,_= self.rnn_layer(rnn1, sequence_length, units, 'bdrnn2')
-            drop_out = slim.dropout(rnn2, 0.7, is_training=is_training, scope='dropout')
-            rnn_logits = tf.layers.dense(drop_out, num_classes + 1,
+            rnn2 = slim.dropout(rnn2, 0.7, is_training=is_training, scope='dropout3')
+            rnn_logits = tf.layers.dense(rnn2, num_classes + 1,
                                          activation=logit_activation,
                                          kernel_initializer=weight_initializer,
                                          bias_initializer=bias_initializer,
                                          name='logits')
-            rnn_logits = slim.dropout(rnn_logits, 0.7, is_training=is_training, scope='dropout')
 
             return rnn_logits
 
@@ -254,11 +255,14 @@ class CTC_Model():
 
             i = 0
             with tf.Session() as sess:
-                sess.run(tf.global_variables_initializer())
+
 
                 if os.path.exists(config.MODEL_SAVE.replace('ctc.ckpt','')):
                     saver.restore(sess,config.MODEL_SAVE)
                     print("restore")
+
+                else:
+                    sess.run(tf.global_variables_initializer())
 
                 merged = tf.summary.merge_all()
                 writer_train = tf.summary.FileWriter(ctc_train_path, sess.graph)
