@@ -1,69 +1,183 @@
 import os
+from glob import glob
+import os
+import cv2
+import sys
+import math
+import matplotlib.pyplot as plot
+import matplotlib
+import numpy as np
+import os
+import random
+from config import Config as config
+from tqdm import tqdm
+
+ont_hot = {'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'+':10,'-':11,'=':12,'×':13,'÷':14,'(':15,')':16}
 
 
-class Config(object):
-
-    MNIST_PATH = os.environ['HOME']+ '/mnist'
-
-    CLEAN_DATA =  os.environ['HOME']+'/ocr_train'
-
-    NOISE_DATA =  os.environ['HOME']+'/noise_data'
-
-    VAL_DATA = os.environ['HOME']+'/ocr_val_test'
-
-    a = {'1': 0, '0': 1, '8': 2, '5': 3, '3': 4, '-': 5, '2': 6, '=': 7, '6': 8, '×': 9, '7': 10, '÷': 11, '4': 12,
-         '9': 13, '+': 14, '捡': 15, '起': 16, '来': 17, '吧': 18, '错': 19, '题': 20, '本': 21, '把': 22, '掉': 23, '落': 24,
-         '的': 25, '(': 26, ')': 27, '*': 28, '口': 29, '算': 30, '练': 31, '习': 32, '>': 33, '笔': 34, '闯': 35, '关': 36,
-         '家': 37, '长': 38, '评': 39, '分': 40, ':': 41, '用': 42, '时': 43, '!': 44, '第': 45, '天': 46, '月': 47, '日': 48,
-         '乘': 49, '号': 50, '竖': 51, '式': 52, '脱': 53, '计': 54, '获': 55, '得': 56, '收': 57, '了': 58, '巧': 59, '个': 60,
-         '称': 61, '冲': 62, '刺': 63, '回': 64, '准': 65, '确': 66, '率': 67, '开': 68, '始': 69, '基': 70, '础': 71, '过': 72,
-         '小': 73, '朋': 74, '友': 75, ',': 76, '打': 77, '上': 78, '对': 79, '勾': 80, '文': 81, '具': 82, '盒': 83, '才': 84,
-         '可': 85, '以': 86, '购': 87, '物': 88, '车': 89, '里': 90, '哦': 91, '你': 92, '几': 93, '呢': 94, '?': 95, '被': 96,
-         '能': 97, '力': 98, '提': 99, '高': 100, '@': 101, '初': 102, '级': 103, '银': 104, '员': 105, '中': 106, '钟': 107,
-         '~': 108, '.': 109, "'": 110, '未': 111, '借': 112, '位': 113, '有': 114, '棉': 115, '花': 116, '背': 117, '篓': 118,
-         '优': 119, '括': 120, '误': 121, '八': 122, '火': 123, '锅': 124, '菜': 125, '%': 126, '金': 127, '针': 128, '菇': 129,
-         '好': 130, '秒': 131, '父': 132, '运': 133, '符': 134, '变': 135, '化': 136, '前': 137, '是': 138, '减': 139, '正': 140,
-         '棒': 141, '哒': 142, '学': 143, '年': 144, '数': 145, '。': 146, '极': 147, '－': 148, '如': 149, '拣': 150, 'd': 151,
-         '巴': 152, 'o': 153, 'G': 154, '‘': 155, 'e': 156, 'N': 157, '￥': 158, '周': 159, 'n': 160, 's': 161, 'S': 162,
-         '加': 163, '': -1}
-    NUM = ''.join(list(set(a)))
-
-    ONE_HOT = {'<GO>': 0, '<EOS>': 1, '<UNK>': 2, '<PAD>': 3}
-
-    for i in range(len(NUM)):
-        ONE_HOT[NUM[i]] = i + 4
-
-    ONE_HOT_SIZE = len(ONE_HOT)
-
-    FONT_DATA = './Fonts'
-
-    IMG_MAXSIZE = 250
+def image_normal(image):
+    if image.shape[0] != 32:
+        image = cv2.resize(image, (int(image.shape[1] / image.shape[0] * 32), 32))
+    if image.shape[1] > 250:
+        image = cv2.resize(image, (250, 32))
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image = image / 255 * 2 - 1
+    image  = np.reshape(image,[1,image.shape[0],image.shape[1],1])
+    image_ = np.ones([1,32,250,1])
+    image_[:,:,:image.shape[2],:] = image
+    return image_
 
 
-    IMAGE_HEIGHT = 32
 
-    TEST_DATA = '/home/wzh/test_data'
+class DataSet(object):
+    def __init__(self,noise_able = False):
+        clean_data = glob(os.path.join(config.CLEAN_DATA,'*'))
+        noise_data = glob(os.path.join(config.NOISE_DATA,'*'))
+        self.val_data = glob(os.path.join(config.VAL_DATA,'*'))
+        self.all_data = []
+        if noise_able:
+            self.all_data = noise_data
+        else:
+            self.all_data = clean_data
 
-    MODEL_SAVE = './model_attention/ctc.ckpt'
 
-    SEQ_MAXSIZE = 50
 
-    VAL_SIZE = 100
+    def image_normal(self,image):
+        if image.shape[0]!=32:
+            image = cv2.resize(image,(int(image.shape[1]/image.shape[0]*32),32))
+        if image.shape[1]>250:
+            image = cv2.resize(image, (250, 32))
+        image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+        image = image/255*2-1
+        return image
 
-    RNN_UNITS = 256
+    def get_labels(self,images_path):
+        label_list = []
+        label_len = []
 
-    SHUFFLE = [0,640,3200,3840,4160,4480,9398]
+        target_input = np.ones((len(images_path), config.SEQ_MAXSIZE), dtype=np.float32) + 2
+        target_out = np.ones((len(images_path), config.SEQ_MAXSIZE), dtype=np.float32) + 2
 
-    BATCH_SIZE = 2
+        for path in images_path:
+            label = path.split('_')[-1].replace('.jpg', '')
+            label = label.replace('.png', '')
+            label_list.append(label)
+            label_len.append(len(label))
 
-    CLASS_NUM = 2682
+        for i in range(len(label_list)):
+            # seq_len.append(len(label[i]))
+            target_input[i][0] = 0  # 第一个为GO
+            for j in range(len(label_list[i])):
+                target_input[i][j + 1] = config.ONE_HOT[label_list[i][j]]
+                target_out[i][j] = config.ONE_HOT[label_list[i][j]]
+            target_out[i][len(label_list[i])] = 1
+        label_len = np.array(label_len, dtype=np.int32)
+        return target_input, target_out,label_list,label_len
 
-    A_CLASS_NUM = 2686
 
-    LEARN_RATE = 1e-4
+    def get_imges(self,images_path):
+        batch_size = len(images_path)
+        image_list = []
+        max_wide = config.IMG_MAXSIZE
+        images_wide = []
 
-    A_UNITS = 256
+        for path in images_path:
+            image = cv2.imread(path)
+            image = self.image_normal(image)
+            images_wide.append(image.shape[1])
+            image_list.append(image)
 
+
+        images = np.zeros([batch_size,config.IMAGE_HEIGHT,max_wide])
+
+        for i,image in enumerate(image_list):
+            images[i,:,0:image.shape[1]] = image
+        images = images[...,np.newaxis]
+
+        wides = np.array(images_wide,dtype=np.int32)
+
+        return images,wides
+
+
+    def train_data_generator(self,batch_size):
+        all_data = self.all_data
+        step = 0
+        epoch = 0
+        while True:
+            if (step+1)*batch_size >len(all_data):
+                random.shuffle(all_data)
+                step=0
+                epoch = epoch+1
+            images_path = all_data[step*batch_size:(step+1)*batch_size]
+            images, _ = self.get_imges(images_path)
+            target_input, target_out,label_list,label_len = self.get_labels(images_path)
+
+            step = step+1
+
+            yield images,target_input, target_out,label_list,label_len,epoch
+
+
+
+    def create_val_data(self):
+
+        val_data = self.val_data
+        all_val_data = []
+        i = 0
+        while i * config.BATCH_SIZE < len(val_data):
+            if (i + 1) * config.BATCH_SIZE > len(val_data):
+                end = len(val_data)
+            else:
+                end = (i + 1) * config.BATCH_SIZE
+            images, _ = self.get_imges(val_data[i*config.BATCH_SIZE:end])
+            target_input, target_out, label_list,label_len = self.get_labels(val_data[i*config.BATCH_SIZE:end])
+            all_val_data.append((images, target_input, target_out, label_list,label_len))
+            i = i + 1
+        return all_val_data
+
+
+# def fuck():
+#     val_data = glob(os.path.join(config.VAL_DATA, '*'))
+#     for path in val_data:
+#         img = cv2.imread(path)
+#         cut = 0
+#         for i in range(300):
+#             if img[i,0,0]==255:
+#                 cut = i
+#                 break
+#         img = img[0:cut,:,:]
+#         cv2.imwrite(path.replace('test_data','test_data2'),img)
+#         print("a")
 #
-# print(Config.ONE_HOT)
+# def test():
+#     val_data = glob(os.path.join(config.VAL_DATA, '*'))
+#     for path in val_data:
+#         image = cv2.imread(path)
+#         image = cv2.resize(image, (int(image.shape[1] / image.shape[0] * 32), 32))
+#         cv2.imwrite(path.replace('test_data','see'),image)
 
+
+
+
+# fuck()
+# test()
+# #
+# print (os.environ['HOME'])
+# dataset = DataSet()
+# a = dataset.create_val_data()
+# print('a')
+# # generator = dataset.train_data_generator(config.BATCH_SIZE)
+# while True:
+#     images, target_input, target_out,epoch = next(generator)
+#     print('aa')
+#
+# images, labels, wides,length = dataset.create_val_data()
+# print('a')
+
+# one_hot = []
+# for path in tqdm(glob(os.path.join(config.CLEAN_DATA,'*'))):
+#     label = path.split('_')[-1]
+#     for char in label:
+#         one_hot.append(char)
+#
+# one_hot = list(set(one_hot))
+# print(''.join(one_hot))

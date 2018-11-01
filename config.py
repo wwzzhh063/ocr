@@ -54,7 +54,7 @@ class Config(object):
 
     SHUFFLE = [0,640,3200,3840,4160,4480,9398]
 
-    BATCH_SIZE = 2
+    BATCH_SIZE = 64
 
     CLASS_NUM = 2682
 

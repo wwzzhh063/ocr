@@ -9,7 +9,6 @@ from glob import glob
 import os
 from tensorflow.python.layers.core import Dense
 from tensorflow.contrib.seq2seq import ScheduledEmbeddingTrainingHelper
-from utils import DataSet
 from tensorflow.contrib import layers
 from tensorflow.contrib import seq2seq
 import random
@@ -23,7 +22,7 @@ class CTC_Model():
 
     def base_conv_layer(self,inputs,is_training):
         batch_norm_params = {'is_training': is_training, 'decay': 0.9
-            , 'updates_collections': None}
+            , 'updates_collections': None, 'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ]}
 
         with slim.arg_scope([slim.conv2d],kernel_size = [3,3],weights_regularizer=slim.l2_regularizer(1e-4),
                             normalizer_fn= slim.batch_norm,normalizer_params = batch_norm_params):
@@ -164,14 +163,16 @@ class CTC_Model():
 
 
         with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
             i = 0
 
             if os.path.exists(config.MODEL_SAVE.replace('ctc.ckpt', '')):
-                saver.restore(sess, config.MODEL_SAVE)
+                saver.restore(sess,config.MODEL_SAVE)
                 print("restore")
+            else:
+                sess.run(tf.global_variables_initializer())
 
             all_val_data = dataset.create_val_data()
+
 
 
 
@@ -224,7 +225,7 @@ class CTC_Model():
                         '----------------------------------------------------------------------------------------------------------------')
 
                 if i % 100 == 0:
-                    saver.save(sess, config.MODEL_SAVE)
+                    saver.save(sess, config.MODEL_SAVE,global_step=int(i/100))
 
 
                 if i%500 == 0:
