@@ -161,7 +161,6 @@ class CTC_Model():
         # saver = tf.train.Saver(tf.global_variables())
         saver = tf.train.Saver()
 
-
         with tf.Session() as sess:
             i = 0
 
@@ -170,6 +169,9 @@ class CTC_Model():
                 print("restore")
             else:
                 sess.run(tf.global_variables_initializer())
+
+            variable_names = [v.name for v in tf.all_variables()]
+            print(variable_names)
 
             all_val_data = dataset.create_val_data()
 
@@ -225,7 +227,7 @@ class CTC_Model():
                         '----------------------------------------------------------------------------------------------------------------')
 
                 if i % 100 == 0:
-                    saver.save(sess, config.MODEL_SAVE,global_step=int(i/100))
+                    saver.save(sess, config.MODEL_SAVE)
 
 
                 if i%500 == 0:
@@ -289,10 +291,16 @@ class CTC_Model():
                 saver.restore(sess, config.MODEL_SAVE)
                 print("restore")
 
-            print(sess.run(pred_decode_result,feed_dict={inputs:img,is_training:False,batch_size:[1]}))
+            a = sess.run(pred_decode_result,feed_dict={inputs:img,is_training:False,batch_size:[1]})
+
+            decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
+
+            val_result = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x), y))).split('<EOS>')[0], a))
+            print(val_result)
+            print(a)
 
 
-
+#0.01627307 -0.05730174 -0.05260642 ... -0.98261803  0.9896414
 
 
 
@@ -308,10 +316,10 @@ class CTC_Model():
 
 model = CTC_Model()
 
-# img = cv2.imread('0.jpg')
-# img = utils.image_normal(img)
-# model.output(img)
-model.train()
+img = cv2.imread('0.jpg')
+img = utils.image_normal(img)
+model.output(img)
+# model.train()
 # model.output('/home/wzh/1_4+6=78.png')
 # model.analyze_result('/home/wzh/analyze')
 
