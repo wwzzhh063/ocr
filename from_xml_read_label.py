@@ -44,7 +44,8 @@ def label_replace(label):
     label = label.replace('一','1')
     label = label.replace('二', '2')
     label = label.replace('五', '5')
-    label = label.replace('/','')
+    label = label.replace('/','|')
+    label = label.replace('$','')
 
     return label
 
@@ -77,25 +78,28 @@ def read_label(xml):
 
 def create_dataet():
     num = 0
-    for i in tqdm(glob('/home/wzh/suanshi_train/*')):
+    for i in tqdm(glob('/home/wzh/第三批/识别数据/*')):
 
-        for xml in glob(os.path.join(i, 'outputs/*')):
-            other = [path for path in glob(os.path.join(i, '*')) if 'outputs' not in path][0]
+        for xml in glob(os.path.join(i, '生成的xml文件/*')):
+            other = [path for path in glob(os.path.join(i, '*')) if '生成的xml文件' not in path and 'error' not in path][0]
 
             label, name = read_label(xml)
 
             path = os.path.join(other, name)
 
-            if label != 'None' and label != 'Good' and label != '':
-                subprocess.call(['cp', path, '/home/wzh/ocr_train/' + str(num) + '_' + label + '.jpg'])
+            problem = ('{' in label and '}'not in label) or  ('}' in label and '{'not in label) or (('}' in label or '{' in label) and '|'not  in label)
+
+            if ('|' in label ) and label != 'None' and label != 'Good' and label != '':
+                subprocess.call(['cp', path, '/home/wzh/ocr_fraction_/' + str(num) + '_' + label + '.jpg'])
 
                 num = num + 1
 
     # onthot = open('./onehot.txt','w')
     # onthot.write(str(list))
     # print(list)
+if __name__ == '__main__':
 
-# create_dataet()
+    create_dataet()
 
 
 

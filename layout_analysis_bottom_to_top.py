@@ -1,9 +1,10 @@
-from inference import set_xml_data,draw_bbox
+from inference import set_xml_data
 from config import Config as config
 import cv2
 from tqdm import tqdm
 import math
 import random
+from utils import draw_bboxes
 
 #Python3.6
 class Point(): #定义类
@@ -369,34 +370,10 @@ class Layout_Analysis(object):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
 
 
-    xml_path = config.DATA_XML
-    all_img = set_xml_data(xml_path)
+    all_img = set_xml_data('/home/wzh/竖式，脱式/xml','/home/wzh/竖式，脱式/img','/home/wzh/竖式，脱式/suanshi')
 
     for img_result in tqdm(all_img):
 
@@ -443,8 +420,8 @@ if __name__ == '__main__':
         # for bbox in img_result.hand_word:
         #     draw_bbox(bbox.bbox,img2,(0,0,255))
 
-        for bbox in layout_analysis.all_after_row_connect:
-            draw_bbox(bbox.bbox,img2,(0,0,255))
+        # for bbox in layout_analysis.all_after_row_connect:
+        #     draw_bbox(bbox.bbox,img2,(0,0,255))
 
         #
         # for bbox in img_result.print_cell_cell_word:

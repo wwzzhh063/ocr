@@ -67,6 +67,8 @@ def img_normal(img,img_path):
 
     canny = cv2.Canny(img,25,50,apertureSize=3)
 
+    canny = cv2.blur(canny, (3, 3))
+
     gradX = cv2.Sobel(img, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=3)              #水平方向sobel算子
     gradY = cv2.Sobel(img, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=3)              #垂直方向sobel算子
 
@@ -124,11 +126,67 @@ def print_line(line,img):
         # 绘制一条直线
         cv2.line(img, pt1, pt2, (0,0,255), 2)
 
+def texiao(img_path,save_path,divide = 100):
+    img_orginal = cv2.imread(img_path)
+    img = cv2.cvtColor(img_orginal, cv2.COLOR_BGR2GRAY)
+    img = cv2.blur(img, (3, 3))
 
-path = 'aa.jpeg'
+    gradX = cv2.Sobel(img, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=3)  # 水平方向sobel算子
+    gradY = cv2.Sobel(img, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=3)  # 垂直方向sobel算子
+
+    # subtract the y-gradient from the x-gradient
+    gradient = cv2.add(np.abs(gradX), np.abs(gradY))  # 平滑
+    (_, thresh) = cv2.threshold(gradient, 40, 255, cv2.THRESH_BINARY)
+
+    canny = cv2.Canny(img, 25, 50, apertureSize=3)
+    canny = (255-canny)/255
+    canny = (255-thresh)/255
+
+    lenght = img.shape[0]
+    ever_lenght = int(lenght/divide)
+    for i in tqdm(range(divide)):
+        if i+1 == divide:
+            end = lenght
+        else:
+            end = (i+1)*ever_lenght
+        canny_temp = np.ones(canny.shape)
+        canny_temp[i*ever_lenght:end] = canny[i*ever_lenght:end]
+        img_temp = img_orginal*canny_temp[:,:,np.newaxis]
+        color = np.ones(img_orginal.shape)*(1-canny_temp[:,:,np.newaxis])*(0,255,0)
+        img_temp = img_temp+color
+        cv2.imwrite(os.path.join(save_path,str(i)+'.jpg'),img_temp)
+
+def dection_circles(img_h,img_o):
+    img_h = np.asarray(img_h,np.uint8)
+    circle1 = cv2.HoughCircles(img_h, cv2.HOUGH_GRADIENT, 1, 50, param1=100, param2=50, minRadius=0, maxRadius=500)
+    circles = circle1[0, :, :]  # 提取为二维
+    circles = np.uint16(np.around(circles))  # 四舍五入，取整
+    for i in circles[:]:
+        cv2.circle(img_o, (i[0], i[1]), i[2], (0, 0, 0), 5)
+
+    return img_o
+
+
+
+path = '/home/wzh/ocr/lADPDgQ9qVqmuZLNAWPNAkM_579_355.jpg'
 img = cv2.imread(path)
 img1, img2 = img_normal(img.copy(), path)
-img3, img4 = preprocess(img.copy(), img1, img2)
-cv2.imwrite(path.replace('.', '_3.'), img3)
-cv2.imwrite(path.replace('.', '_4.'), img4)
+img_1o = dection_circles(img1,img.copy())
+img_2o = dection_circles(img2,img.copy())
+
+cv2.imwrite(path.replace('.', '_1.'), img1)
+cv2.imwrite(path.replace('.', '_3.'), img2)
+
+cv2.imwrite(path.replace('.', '_2.'), img_1o)
+cv2.imwrite(path.replace('.', '_4.'), img_2o)
+
+
+# img3, img4 = preprocess(img.copy(), img1, img2)
+# cv2.imwrite(path.replace('.', '_3.'), img3)
+# cv2.imwrite(path.replace('.', '_4.'), img4)
+
+# texiao('hs(8).jpg','texiao')
+
+
+
 

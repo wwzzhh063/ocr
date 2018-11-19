@@ -19,7 +19,7 @@ import time
 from easytest import beam_search_decoder
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-import pipline
+# import pipline
 import re
 
 
@@ -54,9 +54,10 @@ class CTC_Model():
 
                 conv7 = slim.conv2d(pool3, 512, scope='conv7')
                 conv8 = slim.conv2d(conv7, 512, scope='conv8')
-                pool4 = slim.max_pool2d(conv8, kernel_size=[3, 1], stride=[3, 1], scope='pool4')
+                # pool4 = slim.max_pool2d(conv8, kernel_size=[3, 1], stride=[3, 1], scope='pool4')
+                conv9 = slim.conv2d(conv8,512,kernel_size = [2,2],stride=1,padding='VALID',scope='conv9')
 
-                features = tf.squeeze(pool4, axis=1, name='features')
+                features = tf.transpose(conv9,[0,2,1,3])
 
                 conv1_trim = tf.constant(2 * (3 // 2),
                                          dtype=tf.int32,
@@ -66,9 +67,20 @@ class CTC_Model():
                 after_pool1 = tf.floor_div(after_conv1, 2)
                 after_pool2 = after_pool1 - 1
                 after_pool3 = after_pool2 - 1
-                after_pool4 = after_pool3
+                after_conv9 = after_pool3 -1
+                after_conv9 = after_conv9 * 2
 
-                sequence_length = tf.reshape(after_pool4, [-1], name='seq_len')
+                num = tf.argmax(after_conv9)
+
+                max_lenght = after_conv9[num]
+
+                features = tf.reshape(features,[-1,max_lenght,512],name='features')
+
+                # features = tf.squeeze(features, axis=1, name='features')
+
+
+
+                sequence_length = tf.reshape(after_conv9, [-1], name='seq_len')
                 sequence_length = tf.maximum(sequence_length, 1)
 
                 return features, sequence_length
@@ -87,13 +99,13 @@ class CTC_Model():
 
                 conv3 = slim.conv2d(pool2, 256, scope='conv3')
                 conv4 = slim.conv2d(conv3, 256, scope='conv4')
-                pool3 = slim.max_pool2d(conv4, kernel_size=[2, 2], stride=[2, 2], scope='pool3')
+                pool3 = slim.max_pool2d(conv1, kernel_size=[2, 2], stride=[2, 2], scope='pool3')
 
                 conv5 = slim.conv2d(pool3, 512, scope='conv5', normalizer_fn=slim.batch_norm,
                                     normalizer_params=batch_norm_params)
                 conv6 = slim.conv2d(conv5, 512, scope='conv6', normalizer_fn=slim.batch_norm,
                                     normalizer_params=batch_norm_params)
-                pool4 = slim.max_pool2d(conv6, kernel_size=[2, 2], stride=[2, 2], scope='pool4')
+                pool4 = slim.max_pool2d(conv1, kernel_size=[2, 2], stride=[2, 2], scope='pool4')
 
                 conv7 = slim.conv2d(pool4, 512, padding='SAME', scope='conv7')
 
@@ -130,7 +142,7 @@ class CTC_Model():
 
         return rnn_output_stack, enc_state
 
-    def rnn_layers(self, features, sequence_length, num_classes, units,is_training):
+    def rnn_layers(self, features, sequence_length, num_classes, units, is_training):
 
         logit_activation = tf.nn.relu
         weight_initializer = tf.contrib.layers.variance_scaling_initializer()
@@ -138,10 +150,12 @@ class CTC_Model():
 
         with tf.variable_scope("rnn"):
             rnn_sequence = tf.transpose(features, perm=[1, 0, 2], name='time_major')
-            rnn_sequence = slim.dropout(rnn_sequence, 0.7, is_training=is_training, scope='dropout')
+            rnn_sequence = slim.dropout(rnn_sequence, 0.7, is_training=is_training, scope='dropout1')
             rnn1, _ = self.rnn_layer(rnn_sequence, sequence_length, units, 'bdrnn1')
-            drop_out = slim.dropout(rnn1,0.7,is_training=is_training, scope='dropout')
-            rnn_logits = tf.layers.dense(drop_out, num_classes + 1,
+            rnn1 = slim.dropout(rnn1, 0.7, is_training=is_training, scope='dropout2')
+            rnn2, _ = self.rnn_layer(rnn1, sequence_length, units, 'bdrnn2')
+            rnn2 = slim.dropout(rnn2, 0.7, is_training=is_training, scope='dropout3')
+            rnn_logits = tf.layers.dense(rnn2, num_classes + 1,
                                          activation=logit_activation,
                                          kernel_initializer=weight_initializer,
                                          bias_initializer=bias_initializer,
@@ -151,7 +165,7 @@ class CTC_Model():
 
     def crnn(self, inputs, width, is_training):
         features, sequence_length = self.base_conv_layer(inputs, width, is_training)
-        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT), config.RNN_UNITS,is_training)
+        logits = self.rnn_layers(features, sequence_length, len(config.ONE_HOT), config.RNN_UNITS, is_training)
         return logits, sequence_length
 
     def ctc_loss_layer(self, rnn_logits, sequence_labels, sequence_length):
@@ -168,7 +182,11 @@ class CTC_Model():
         else:
 
             predictions, _ = tf.nn.ctc_beam_search_decoder(logits, sequence_length, beam_width=10, top_paths=5,
-                                                           merge_repeated=True)
+                                                           merge_repeated=False)
+
+        decoder = predictions[0]
+        dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
+                                           sparse_values=decoder.values, default_value=-1)
 
         hypothesis = tf.cast(predictions[0], tf.int32)  # for edit_distance
         hypothesis2 = tf.cast(predictions[1], tf.int32)
@@ -201,7 +219,7 @@ class CTC_Model():
 
         tf.summary.scalar('label_error', label_error)
         tf.summary.scalar('sequence_error', sequence_error)
-        return 1 - label_error, 1 - sequence_error, 1 - sequence_errors_top3
+        return 1 - label_error, 1 - sequence_error, 1 - sequence_errors_top3,dense_decoder
 
     def train(self):
         inputs = tf.placeholder(tf.float32, [None, 32, None, 1])
@@ -214,8 +232,9 @@ class CTC_Model():
 
         loss = self.ctc_loss_layer(logits, sequence_label, sequence_length)
 
-        label_error, sequence_error, sequence_errors_top3 = self.error(logits, sequence_length, sequence_label,
-                                                                       label_length)
+        label_error, sequence_error, sequence_errors_top3, dense_decoder = self.error(logits, sequence_length,
+                                                                                      sequence_label,
+                                                                                      label_length)
 
         # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         # with tf.control_dependencies(update_ops):
@@ -228,25 +247,27 @@ class CTC_Model():
         train_generator = dataset.train_data_generator(config.BATCH_SIZE)
         all_val_data = dataset.create_val_data()
 
-        ctc_train_path = './ctc_train_path'
-        ctc_val_path = './ctc_val_path'
+        ctc_train_path = './ctc_train_path2'
+        ctc_val_path = './ctc_val_path2'
         # saver = tf.train.Saver(tf.global_variables())
         saver = tf.train.Saver()
 
         i = 0
         with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
 
-            if os.path.exists('./model_slim/ctc.ckpt'.replace('ctc.ckpt', '')):
-                saver.restore(sess, './model_slim/ctc.ckpt')
+            if os.path.exists('model_fraction2/ctc.ckpt'.replace('ctc.ckpt', '')):
+                saver.restore(sess, 'model_fraction2/ctc.ckpt')
                 print("restore")
+
+            else:
+                sess.run(tf.global_variables_initializer())
 
             merged = tf.summary.merge_all()
             writer_train = tf.summary.FileWriter(ctc_train_path, sess.graph)
             writer_val = tf.summary.FileWriter(ctc_val_path, sess.graph)
 
             while True:
-                images, labels, width_, length_, epoch = next(train_generator)
+                images, labels, width_, length_, real_labels, epoch = next(train_generator)
 
                 feeddict = {inputs: images, sequence_label: (labels[0], labels[1], labels[2]), width: width_,
                             label_length: length_, is_training: True}
@@ -254,7 +275,7 @@ class CTC_Model():
                 sess.run(optimizer, feed_dict=feeddict)
 
                 if i % 20 == 0:
-                    images_val, labels_val, width_val, length_val = random.sample(all_val_data, 1)[0]
+                    images_val, labels_val, width_val, length_val, real_labels_val = random.sample(all_val_data, 1)[0]
 
                     feeddict_train = {inputs: images, sequence_label: (labels[0], labels[1], labels[2]), width: width_,
                                       label_length: length_, is_training: False}
@@ -262,10 +283,19 @@ class CTC_Model():
                     feeddict_val = {inputs: images_val, sequence_label: (labels_val[0], labels_val[1], labels_val[2]),
                                     width: width_val, label_length: length_val, is_training: False}
 
-                    train_loss, train_label_error, train_sequence_error, train_log = sess.run(
-                        [loss, label_error, sequence_error, merged], feed_dict=feeddict_train)
-                    label_error_val, sequence_error_val, sequence_errors_top3_val, val_log = sess.run(
-                        [label_error, sequence_error, sequence_errors_top3, merged], feed_dict=feeddict_val)
+                    train_loss, train_label_error, train_sequence_error, train_log, train_dense_decoder = sess.run(
+                        [loss, label_error, sequence_error, merged, dense_decoder], feed_dict=feeddict_train)
+                    label_error_val, sequence_error_val, sequence_errors_top3_val, val_log, val_dense_decoder = sess.run(
+                        [label_error, sequence_error, sequence_errors_top3, merged, dense_decoder],
+                        feed_dict=feeddict_val)
+
+                    decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
+
+                    train_dense_decoder = train_dense_decoder.tolist()
+                    val_dense_decoder = val_dense_decoder.tolist()
+                    train_result = list(
+                        map(lambda y: ''.join(list(map(lambda x: decode.get(x), y))), train_dense_decoder))
+                    val_result = list(map(lambda y: ''.join(list(map(lambda x: decode.get(x), y))), val_dense_decoder))
 
                     writer_train.add_summary(train_log, i)
                     writer_val.add_summary(val_log, i)
@@ -277,16 +307,22 @@ class CTC_Model():
                     print('val_seq_top3_acc{}'.format(sequence_errors_top3_val))
                     print('epoch{}'.format(epoch))
                     print(
+                        'train_label{}'.format(real_labels[0:2] + real_labels[config.BATCH_SIZE:config.BATCH_SIZE + 2]))
+                    print('train_result{}'.format(
+                        train_result[0:2] + train_result[config.BATCH_SIZE:config.BATCH_SIZE + 2]))
+                    print('val_label{}'.format(real_labels_val[0:4]))
+                    print('val_result{}'.format(val_result[0:4]))
+                    print(
                         '----------------------------------------------------------------------------------------------------------------')
                 #
                 if i % 100 == 0:
-                    saver.save(sess, './model_slim/ctc.ckpt')
+                    saver.save(sess, 'model_fraction2/ctc.ckpt')
 
                 if i % 1000 == 0:
-                    label_error_val_all, sequence_error_val_all, sequence_error_val_all_top3 = 0, 0, 0
+                    label_error_val_all, sequence_error_val_all = 0, 0
                     j = 0
                     for i in range(len(all_val_data)):
-                        images_val, labels_val, width_val, length_val = all_val_data[i]
+                        images_val, labels_val, width_val, length_val, _ = all_val_data[i]
                         if i % 500 == 0:
                             print(i)
 
@@ -294,24 +330,20 @@ class CTC_Model():
                                         sequence_label: (labels_val[0], labels_val[1], labels_val[2]),
                                         width: width_val, label_length: length_val, is_training: False}
 
-                        label_error_val, sequence_error_val, sequence_errors_top3_val, val_log = sess.run(
-                            [label_error, sequence_error, sequence_errors_top3, merged], feed_dict=feeddict_val)
+                        label_error_val, sequence_error_val, val_log = sess.run(
+                            [label_error, sequence_error, merged], feed_dict=feeddict_val)
                         label_error_val_all = label_error_val_all + label_error_val
                         sequence_error_val_all = sequence_error_val_all + sequence_error_val
-                        sequence_error_val_all_top3 = sequence_error_val_all + sequence_errors_top3_val
                         j = j + 1
                     label_error_val_all = label_error_val_all / j
                     sequence_error_val_all = sequence_error_val_all / j
-                    sequence_error_val_all_top3 = sequence_error_val_all_top3 / j
                     f = open('log.txt', 'a')
                     f.write('val_label_acc_all{}'.format(label_error_val_all))
                     f.write('val_seq_acc_all{}'.format(sequence_error_val_all))
-                    f.write('val_seq_acc_all_top3{}'.format(sequence_error_val_all_top3))
                     f.write(
                         '----------------------------------------------------------------------------------------------------------------')
                     print('val_label_acc_all{}'.format(label_error_val_all))
                     print('val_seq_acc_all{}'.format(sequence_error_val_all))
-                    print('val_seq_acc_all_top3{}'.format(sequence_error_val_all_top3))
                     print(
                         '----------------------------------------------------------------------------------------------------------------')
                     print(
@@ -331,13 +363,11 @@ class CTC_Model():
             decoders, probably = tf.nn.ctc_beam_search_decoder(logits,
                                                                sequence_length,
                                                                beam_width=20,
-                                                               top_paths=10,
+                                                               top_paths=5,
                                                                merge_repeated=False)
 
-            decodes_greedy, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length, merge_repeated=True)
-
-
         decoder_list = []
+
         for decoder in decoders:
             dense_decoder = tf.sparse_to_dense(sparse_indices=decoder.indices, output_shape=decoder.dense_shape,
                                                sparse_values=decoder.values, default_value=-1)
@@ -354,7 +384,7 @@ class CTC_Model():
         with tf.Session() as sess:
 
             saver = tf.train.Saver(tf.global_variables())
-            saver.restore(sess, config.MODEL_SAVE)
+            saver.restore(sess, 'model_fraction2/ctc.ckpt')
 
             t1 = time.time()
             decoder_list, logits_, probably_ = sess.run([decoder_list, logits, probably],
@@ -362,24 +392,32 @@ class CTC_Model():
             t2 = time.time()
             print(t2 - t1)
 
-            # t3 = time.time()
-            # _, _ = sess.run([decoder_greey, logits],
-            #                                  feed_dict={inputs: image, width: wides, is_training: False})
-            # t4 = time.time()
-            # print(t4-t3)
-            #
-            # t5 = time.time()
-            # _ = sess.run(logits,feed_dict={inputs:image,width:wides,is_training:False})
-            # t6 = time.time()
-            # print(t6-t5)
+            t3 = time.time()
+            _, _ = sess.run([decoder_greey, logits],
+                            feed_dict={inputs: image, width: wides, is_training: False})
+            t4 = time.time()
+            print(t4 - t3)
+
+            t5 = time.time()
+            logits_ = sess.run(logits, feed_dict={inputs: image, width: wides, is_training: False})
+            logits_ = logits_[:, 0, :]
+            logits_ = logits_[:, config.NUM_SIGN]
+            decoder_cpu = beam_search_decoder(logits_, 5)
+            t6 = time.time()
+            print(t6 - t5)
+            for result in decoder_cpu:
+                def get_char(num):
+                    return config.DECODE[num]
+
+                result_0 = map(get_char, result[0])
+                print(''.join(result_0))
+                print(result[1])
+            print(
+                '------------------------------------------------------------------------------------------------------------')
 
             decode = dict(zip(config.ONE_HOT.values(), config.ONE_HOT.keys()))
 
             result_list = []
-
-            logits_ = logits_[:, 0, :]
-            logits_ = logits_[:, config.NUM_SIGN]
-            classes = np.argmax(logits_, -1)
 
             for sentence in decoder_list:
                 sentence = sentence.tolist()
@@ -388,20 +426,6 @@ class CTC_Model():
 
         for i, result in enumerate(result_list):
             print(result)
-
-        # decoder_cpu = beam_search_decoder(logits_,20)
-        decoder_cpu = pipline.beam_search_decoder(logits_, 20)
-        print(
-            '------------------------------------------------------------------------------------------------------------')
-        for result in decoder_cpu:
-            def get_char(num):
-                return config.DECODE[num]
-
-            result_0 = map(get_char, result[0])
-            print(''.join(result_0))
-            print(result[1])
-
-        print(classes)
 
     def analyze_result(self, paths):
         image_paths = sorted(glob(os.path.join(paths, '*')))
@@ -467,13 +491,12 @@ class CTC_Model():
 
 if __name__ == '__main__':
     model = CTC_Model()
-    # model.output('/home/wzh/test_1_self/IMG_5063/23_63÷(7 .jpg')
-    model.train()
-#
-#
-#
+    # model.output('52_8|9-(1|5+1|3)x-1|3=4|45.jpg')
+    #
+    #
+    #
 
-# # model.train()
+    model.train()
 #
 # # model.analyze_result('/home/wzh/analyze')
 

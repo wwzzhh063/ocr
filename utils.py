@@ -13,51 +13,137 @@ from config import Config as config
 from tqdm import tqdm
 import matplotlib.pyplot as plot
 import skimage
+from PIL import Image,ImageDraw,ImageFont
 
 ont_hot = config.ONE_HOT
 
 not_in = []
-def get_distance(data1, data2):
-    points = zip(data1, data2)
-    diffs_squared_distance = [pow(a - b, 2) for (a, b) in points]
-    return math.sqrt(sum(diffs_squared_distance))
+
+def image_size_normal(img):
+    '''
+    将图片统一resize成4k,并返回其缩放比例
+
+    :param img:     resize的图片
+    :return:    图片的缩放比例
+    '''
+    x_pro = 3024 / img.shape[1]
+    y_pro = 4031 / img.shape[0]
+    img = cv2.resize(img, (3024, 4032))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    return img,x_pro,y_pro
+
+def eval_label(label):
+    '''
+    判断字符串中的算式属于哪种状态
+    1.正确
+    2.错误
+    3.有问题
+
+    :param label:   算式的字符串
+    :return:    算式的状态
+    '''
 
 
-def bbbox_to_distance(point_i,point_j):
-    if len(point_i) == 4:
-        print_word_point = (point_i[2], (point_i[1] + point_i[3]) / 2)
-    else:
-        print_word_point = ((point_i[2] + point_i[4]) / 2, (point_i[3] + point_i[5]) / 2)
-
-    if len(point_j) == 4:
-        hand_word_ponit = (point_j[0], (point_j[1] + point_j[3]) / 2)
-    else:
-        hand_word_ponit = ((point_j[0] + point_j[6]) / 2, (point_j[1] + point_j[7]) / 2)
-
-    distences = get_distance(hand_word_ponit, print_word_point)
-
-    return distences
-
-
-def in_same_line(print_bbox,hand_bbox):
-    if len(print_bbox) == 4:
-        centre_print_bbox = (print_bbox[1] + print_bbox[3]) / 2
-    else:
-        centre_print_bbox =  (print_bbox[3] + print_bbox[5]) / 2
-
-    if len(hand_bbox) == 4:
-        if (print_bbox[1] >= hand_bbox[1] and print_bbox[3]<= hand_bbox[3]) or (hand_bbox[1]>= print_bbox[1] and hand_bbox[3]<=print_bbox[3]):
-            return 'in'
-
-        if centre_print_bbox>hand_bbox[1] and centre_print_bbox<hand_bbox[3]:
-            return 'in'
+    try:
+        if '=' not in label or label=='':
+            return 'problem'
         else:
-            return 'out'
-    else:
-        if centre_print_bbox > hand_bbox[1] and centre_print_bbox < hand_bbox[7]:
-            return 'in'
+            left = label.split('=')[0]
+            right = label.split('=')[1]
+
+        if right=='' or left == '':
+            return 'problem'
+
+        left = left.replace('×', '*')
+        if '÷' in left and ('*' in right or '~' in right):
+            left1 = left.replace('÷', '//')
+            left2 = left.replace('÷', '%')
+            left1 = eval(left1)
+            left2 = eval(left2)
+
+            if '*' in right or '~' in right:
+                right1 = ''
+                right2 = ''
+                if '*' in right:
+                    right1 = right.split('*')[0]
+                    right2 = right.split('*')[-1]
+
+
+                if '~' in right:
+                    right1 = right.split('~')[0]
+                    right2 = right.split('~')[-1]
+
+                right1 = eval(right1)
+                right2 = eval(right2)
+
+                if right1==int(left1) and right2 == int(left2):
+                    return 'right'
+
+                else:
+                    return 'error'
+
+            else:
+                if left2 == 0:
+                    if left1 == int(right):
+                        return 'right'
+                    else:
+                        return 'error'
+                else:
+                    return 'problem'
         else:
-            return 'out'
+            if '÷' in left:
+                left = left.replace('÷', '/')
+            result = eval(left)
+            if result == int(right):
+                return 'right'
+            else:
+                return 'error'
+    except:
+        return 'problem'
+
+
+def draw_bboxes(img,all_result,x_pro,y_pro,display_all = True):
+    for result in all_result:
+        if result.state == 'right':
+            rgb = (0,255,0)
+            cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
+                          (int(result.right * x_pro), int(result.bottom * y_pro)), rgb, 4)
+
+        elif result.state == 'error':
+            rgb = (255, 0, 0)
+            cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
+                          (int(result.right * x_pro), int(result.bottom * y_pro)), rgb, 4)
+
+        elif result.state == 'problem' :
+            if display_all:
+                rgb = (0, 0, 255)
+                cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
+                              (int(result.right * x_pro), int(result.bottom * y_pro)), rgb, 4)
+
+        else:
+            rgb = (0, 0, 0)
+            if result.type == 'print':
+                rgb = (0, 255, 0)
+            elif result.type == 'hand':
+                rgb = (255, 0, 0)
+            elif result.type == 'merge':
+                rgb = (0, 0, 255)
+            cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
+                          (int(result.right * x_pro), int(result.bottom * y_pro)), rgb, 4)
+
+
+
+def draw_result(img,all_result,x_pro,y_pro):
+    ttfont = ImageFont.truetype('SimSun.ttf',50)
+    img = Image.fromarray(img)
+    draw = ImageDraw.Draw(img)
+    for result in all_result:
+        if result.state != 'problem':
+            draw.text((int(result.left*x_pro),int(result.top*y_pro-50)),result.output,fill='blue',font=ttfont)
+        else:
+            draw.text((int(result.left*x_pro),int(result.top*y_pro-50)),result.output,fill='blue',font=ttfont)
+    return img
 
 
 def create_input(image_list,max_wide,wide_list):
@@ -88,30 +174,41 @@ def pre_to_output(sentence):
     return result
 
 
-def draw_pair(pairs,result_list1,result_list2,img,color):
+def draw_pair(pairs,result_list1,result_list2,img,color,x_pro=1, y_pro=1):
     for pair in pairs:
         reuslt1 = result_list1[pair]
         result2 = result_list2[pairs[pair]]
 
-        cv2.line(img, reuslt1.centre, result2.centre, color, 2)
-        cv2.circle(img, reuslt1.centre, radius=20, color=(0, 255, 0), thickness=-1)
-        cv2.circle(img, result2.centre, radius=20, color=(0, 255, 0), thickness=-1)
+        centre1 = (int(reuslt1.centre[0]*x_pro),int(reuslt1.centre[1]*y_pro))
+        centre2 = (int(result2.centre[0] * x_pro), int(result2.centre[1] * y_pro))
+
+        cv2.line(img, centre1, centre2, color, 3)
+        cv2.circle(img, centre1, radius=15, color=(0, 255, 0), thickness=-1)
+        cv2.circle(img, centre2, radius=15, color=(0, 255, 0), thickness=-1)
 
 
-    # cv2.line(img, get_right(bbox_print.bbox), get_left(bbox_hand.bbox), (0, 0, 0), 2)
+def draw_column_pair(column_pairs,cell_list,img,x_pro=1, y_pro=1):
+    for top in column_pairs:
+        top_cell = cell_list[top]
+        if column_pairs[top] == -1:
+            continue
+        bottom_cell = cell_list[column_pairs[top]]
+
+        top_cell_centre = (int(top_cell.centre[0]*x_pro),int(top_cell.centre[1]*y_pro))
+        bottom_cell_centre = (int(bottom_cell.centre[0]*x_pro),int(bottom_cell.centre[1]*y_pro))
+
+        cv2.line(img, top_cell_centre, bottom_cell_centre, (255, 0, 0),3)
+        cv2.circle(img, top_cell_centre, radius=15, color=(0, 255, 0), thickness=-1)
+        cv2.circle(img, bottom_cell_centre, radius=15, color=(0, 255, 0), thickness=-1)
+
+
 
 
 
 class DataSet(object):
-    def __init__(self,noise_able = False):
-        clean_data = glob(os.path.join(config.CLEAN_DATA,'*'))
-        noise_data = glob(os.path.join(config.NOISE_DATA,'*'))
-        self.val_data = glob(os.path.join(config.VAL_DATA,'*'))
-        self.all_data = []
-        if noise_able:
-            self.all_data = noise_data
-        else:
-            self.all_data = clean_data
+    def __init__(self,train_data_list = config.TRAIN_DATA_LIST,val_data_list =config.VAL_DATA_LIST):
+        self.train_data_list = [glob(os.path.join(train_data,'*')) for train_data in train_data_list]
+        self.val_data_list = [glob(os.path.join(val_data,'*')) for val_data in val_data_list]
 
     def list_to_sparse(self,label_list):
         index = []
@@ -156,12 +253,13 @@ class DataSet(object):
         for path in images_path:
             label = path.split('_')[-1].replace('.jpg', '')
             label = label.replace('.png', '')
+            label = label.replace('.JPG', '')
             label_list.append(label)
             label_len.append(len(label))
 
-        labels = self.list_to_sparse(label_list),
+        labels = self.list_to_sparse(label_list.copy()),
         label_len = np.array(label_len, dtype=np.int32)
-        return  labels[0], label_len
+        return  labels[0], label_len,label_list
 
 
     def data_enhance(self,img):
@@ -209,26 +307,32 @@ class DataSet(object):
 
 
     def train_data_generator(self,batch_size):
-        all_data = self.all_data
-        step = 0
-        epoch = 0
+        all_data_list= self.train_data_list
+        step = [0]*len(all_data_list)
+        epoch = [0]*len(all_data_list)
         while True:
-            if (step+1)*batch_size >len(all_data):
-                random.shuffle(all_data)
-                step=0
-                epoch = epoch+1
-            images_path = all_data[step*batch_size:(step+1)*batch_size]
+            images_path = []
+            for i,all_data in enumerate(all_data_list):
+                if (step[i]+1)*batch_size >len(all_data):
+                    random.shuffle(all_data)
+                    step[i]=0
+                    epoch[i] = epoch[i]+1
+                images_path.extend(all_data[step[i]*batch_size:(step[i]+1)*batch_size])
+                step[i] = step[i]+1
             images, wides = self.get_imges(images_path)
-            labels, length = self.get_labels(images_path)
+            labels, length,real_labels = self.get_labels(images_path)
             # if wides[0]<10:
             #     print(images_path)
 
-            step = step+1
 
-            yield images, labels, wides,length,epoch
+
+            yield images, labels, wides,length,real_labels,epoch
 
     def create_val_data(self):
-        val_data = self.val_data
+        val_data_list = self.val_data_list
+        val_data = []
+        for data in val_data_list:
+            val_data.extend(data)
         all_val_data = []
         i = 0
         while i*config.BATCH_SIZE<len(val_data):
@@ -237,8 +341,8 @@ class DataSet(object):
             else:
                 end = (i+1)*config.BATCH_SIZE
             images,  wides = self.get_imges(val_data[i*config.BATCH_SIZE:end])
-            labels,length = self.get_labels(val_data[i*config.BATCH_SIZE:end])
-            all_val_data.append((images, labels, wides, length))
+            labels,length ,real_labels= self.get_labels(val_data[i*config.BATCH_SIZE:end])
+            all_val_data.append((images, labels, wides, length,real_labels))
             i = i+1
         return all_val_data
 
@@ -323,32 +427,32 @@ class DataSet(object):
 
 
 
+if __name__ == '__main__':
 
-# fuck()
-# test()
-# #
-# print (os.environ['HOME'])
-# dataset = DataSet()
-# generator = dataset.train_data_generator(32)
-# while True:
-#     images, labels, wides,length ,epoch= next(generator)
-#     if images.shape[2]>250:
-#         print(images.shape[2])
-#     # print(images.shape[2])
-#     if epoch==1:
-#         break
-    # print('aa')
-#
-# images, labels, wides,length = dataset.create_val_data()
-# print('a')
+    # fuck()
+    # test()
+    # #
+    # print (os.environ['HOME'])
+    dataset = DataSet()
+    generator = dataset.train_data_generator(32)
+    dataset.create_val_data()
+    while True:
+        images, labels, wides,length ,epoch= next(generator)
+        if images.shape[2]>250:
+            print(images.shape[2])
+        print(epoch)
 
-# dataset = DataSet()
-# dataset.analy_data()
-# one_hot = []
-# for path in tqdm(glob(os.path.join(config.CLEAN_DATA,'*'))):
-#     label = path.split('_')[-1]
-#     for char in label:
-#         one_hot.append(char)
-#
-# one_hot = list(set(one_hot))
-# print(one_hot)
+    #
+    # images, labels, wides,length = dataset.create_val_data()
+    # print('a')
+
+    # dataset = DataSet()
+    # dataset.analy_data()
+    # one_hot = []
+    # for path in tqdm(glob(os.path.join(config.CLEAN_DATA,'*'))):
+    #     label = path.split('_')[-1]
+    #     for char in label:
+    #         one_hot.append(char)
+    #
+    # one_hot = list(set(one_hot))
+    # print(one_hot)

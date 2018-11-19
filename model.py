@@ -16,7 +16,7 @@ from math import log
 from numpy import array
 from numpy import argmax
 import time
-from easytest import beam_search_decoder
+# from easytest import beam_search_decoder
 os.environ['CUDA_VISIBLE_DEVICES']='1'
 # import pipline
 import re
@@ -28,7 +28,60 @@ import re
                 
 
 
+def beam_search_decoder(data, k = 10):
 
+   sequences = [[list(), 0.0]]
+
+   # walk over each step in sequence
+
+   for row in data:
+
+       all_candidates = list()
+
+       # expand each current candidate
+
+       for i in range(len(sequences)):
+
+           seq, score = sequences[i]
+
+           for j in range(len(row)):
+               seq_ = seq.copy()
+               if seq and seq[-1] == j and j!=20 and seq[-1]!=20:
+                   if seq[-1] == 20:
+                       seq_.remove(20)
+                   candidate = [seq_, score + (-log(row[j]))]
+               else:
+                   if seq and seq[-1] == 20:
+                       seq_.remove(20)
+                   candidate = [seq_ + [j], score + (-log(row[j]))]
+
+
+
+               all_candidates.append(candidate)
+
+       # order all candidates by score
+
+       ordered = sorted(all_candidates, key=lambda tup:tup[1])
+
+       # select k best
+
+       # sequences = ordered[:k]
+
+       sequence_list = []
+       sequence_temp = []
+       for i,sequence in enumerate(ordered):
+           if i == 0:
+               sequence_list.append(sequence)
+               sequence_temp.append(sequence[0])
+           else:
+               if sequence[0] not in sequence_temp:
+                   sequence_list.append(sequence)
+                   sequence_temp.append(sequence[0])
+           if len(sequence_list) == k:
+               break
+       sequences = sequence_list
+
+   return sequences
 
 
 
@@ -163,6 +216,26 @@ class CTC_Model():
                                          name='logits')
 
             return rnn_logits
+
+
+    # def rnn_layers(self,features, sequence_length, num_classes,units,is_training):
+    #
+    #     logit_activation = tf.nn.relu
+    #     weight_initializer = tf.contrib.layers.variance_scaling_initializer()
+    #     bias_initializer = tf.constant_initializer(value=0.0)
+    #
+    #     with tf.variable_scope("rnn"):
+    #
+    #         rnn_sequence = tf.transpose(features, perm=[1, 0, 2], name='time_major')
+    #         rnn1 ,_ = self.rnn_layer(rnn_sequence, sequence_length, units, 'bdrnn1')
+    #         rnn2 ,_= self.rnn_layer(rnn1, sequence_length, units, 'bdrnn2')
+    #         rnn_logits = tf.layers.dense(rnn2, num_classes + 1,
+    #                                      activation=logit_activation,
+    #                                      kernel_initializer=weight_initializer,
+    #                                      bias_initializer=bias_initializer,
+    #                                      name='logits')
+    #
+    #         return rnn_logits
 
 
     def crnn(self,inputs, width,is_training):
@@ -323,7 +396,7 @@ class CTC_Model():
                             sequence_error_val_all = sequence_error_val_all+sequence_error_val
                             sequence_error_val_all_top3 = sequence_error_val_all + sequence_errors_top3_val
                             j=j+1
-                        label_error_val_all = label_error_val/j
+                        label_error_val_all = label_error_val_all/j
                         sequence_error_val_all = sequence_error_val_all/j
                         sequence_error_val_all_top3 = sequence_error_val_all_top3 / j
                         f = open('log.txt','a')
@@ -503,12 +576,12 @@ class CTC_Model():
 
 if __name__ == '__main__':
     model = CTC_Model()
-    # model.output('9_149+10=199.jpg')
+    model.output('/home/wzh/Desktop/识别and分析badcase/网络问题/22_569-(169=37).jpg')
 #
 #
 #
 
-    model.train()
+    # model.train()
 #
 # # model.analyze_result('/home/wzh/analyze')
 
