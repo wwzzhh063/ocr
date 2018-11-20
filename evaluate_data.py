@@ -1,4 +1,4 @@
-from pipline import pipeline,create_sess
+from pipline import pipeline,create_sess,Result
 from glob import glob
 from tqdm import tqdm
 import os
@@ -11,6 +11,34 @@ from math import log
 import numpy as np
 import cv2
 from PIL import Image,ImageDraw,ImageFont
+import requests
+import base64
+from from_xml_read_label import label_replace
+
+
+
+def file_content(filename):
+    with open(filename, 'rb') as f:
+        return f.read()
+
+def get_json_result(filename):
+    img = file_content(filename)
+
+
+    b64 = base64.b64encode(img).decode()
+
+    BASE_URL = 'http://221.122.129.99:8005/ikkyyu/'
+    data = {'secretkey':'tal', 'appkey':'tal', 'content':b64}
+    r = requests.post(BASE_URL, data=data)
+
+    return r.json()
+
+# print(get_json_result('1.JPG'))
+
+class Json_Result():
+
+    def __init__(self):
+        self.connect_result = []
 
 
 class Single_Img_Evaluate(object):
@@ -291,6 +319,21 @@ class Evaluate_Data(object):
 
 
 
+def json_to_result(json,img):
+    all_result = json['questionImgs']
+    json_result = Json_Result()
+    for q_result in all_result:
+        label = q_result['questionContext']
+        bbox = [q_result['leftX'],q_result['topY'],q_result['leftX']+q_result['questionWidth'],q_result['topY']+q_result['questionHeight']]
+        result = Result(bbox,img,'')
+        result.output = label_replace(label)
+        result.state = eval_label(result.output)
+        json_result.connect_result.append(result)
+
+    return json_result
+
+
+
 
 
 def evaluate(save_path,log_path,xml_path, img_path,recog_path,recognition_xml):
@@ -298,15 +341,19 @@ def evaluate(save_path,log_path,xml_path, img_path,recog_path,recognition_xml):
 
     all_img = set_xml_data(xml_path, img_path,recog_path,recognition_xml)
 
-    sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training, logits, sequence_length, decodes_greedy = create_sess()
+    # sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training, logits, sequence_length, decodes_greedy = create_sess()
 
     evaluate_data = Evaluate_Data()
 
     for i,true_result in enumerate(all_img):
         true_result.row_connect()
         img = true_result.img
-        pre_result, bboxes, types = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width,
-                                         is_training, logits, sequence_length, decodes_greedy)
+        json = get_json_result(true_result.img_path)
+        # pre_result, bboxes, types = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width,
+        #                                  is_training, logits, sequence_length, decodes_greedy)
+        bboxes = []
+        types = []
+        pre_result = json_to_result(json,img)
         single_img_evaluate = Single_Img_Evaluate(true_result,pre_result,img,true_result.name,save_path,'',bboxes, types)
         single_img_evaluate.get_pair()
         single_img_evaluate.statistic_data()
@@ -333,13 +380,13 @@ if __name__ == '__main__':
 
 
 
-    #第五批------------------------------------------------------------------------------------------------------
-    save_path = '/home/wzh/第五批-测试集/第五批测试集-检验'
-    log_path = '/home/wzh/第五批-测试集/第五批测试集-检验/log.txt'
-    xml_path = '/home/wzh/第五批-测试集/第五批测试集/生成的xml文件'
-    img_path = '/home/wzh/第五批-测试集/第五批测试集/原始图片'
-    recog_path = '/home/wzh/第五批-测试集/第五批测试集识别图-result'
-    recognition_xml = 'xml'
+    # #第五批------------------------------------------------------------------------------------------------------
+    # save_path = os.environ['HOME']+'/第五批-测试集/第五批测试集-检验'
+    # log_path = os.environ['HOME']+'/第五批-测试集/第五批测试集-检验/log.txt'
+    # xml_path = os.environ['HOME']+'/第五批-测试集/第五批测试集/生成的xml文件'
+    # img_path = os.environ['HOME']+'/第五批-测试集/第五批测试集/原始图片'
+    # recog_path = os.environ['HOME']+'/第五批-测试集/第五批测试集识别图-result'
+    # recognition_xml = 'xml'
 
 
     evaluate(save_path,log_path,xml_path, img_path,recog_path,recognition_xml)

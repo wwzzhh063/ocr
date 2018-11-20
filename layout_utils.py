@@ -168,7 +168,7 @@ def row_get_pair(print_cell_word_all,hand_word_all,min_value = 3.5):
 
         c_iou = column_iou(box1.bbox,box2.bbox)<0.9              #过滤草稿,对应conflunece上免的badcase1
 
-        return same_line and pair_distance1 and pair_distance1 and c_iou
+        return same_line and pair_distance1 and pair_distance2 and c_iou
 
 
     print_cell_hand = {}

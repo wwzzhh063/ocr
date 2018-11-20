@@ -17,6 +17,13 @@ from layout_utils import row_get_pair,no_chinese,column_get_pair
 from utils import image_size_normal,eval_label,draw_bboxes,draw_result,draw_pair,draw_column_pair
 
 
+
+
+
+
+
+
+
 class Bbox(object):
     def __init__(self,bbox,label,type):
         self.bbox = bbox
@@ -348,6 +355,9 @@ def output_check_result(save_path,xml_path,img_path,recog_path,recognition_xml):
 
             save_path1 = os.path.join(save_path,'problem')
 
+            if not os.path.exists(save_path1):
+                os.mkdir(save_path1)
+
             img = img_result.img
             img,x_pro, y_pro = image_size_normal(img)
 
@@ -374,6 +384,8 @@ def output_check_result(save_path,xml_path,img_path,recog_path,recognition_xml):
 
 
             save_path2 = os.path.join(save_path, 'problem_error')
+            if not os.path.exists(save_path2):
+                os.mkdir(save_path2)
 
             img = img_result.img
             img,x_pro, y_pro = image_size_normal(img)
@@ -513,10 +525,10 @@ def create_dataset(xml_path):
 
 if __name__ == '__main__':
 
-    save_path = '/home/wzh/第五批-测试集/第五批测试集-检验'               #保存的地址
-    xml_path = '/home/wzh/第五批-测试集/第五批测试集/生成的xml文件'          #验证集检测标注的文件夹
-    img_path = '/home/wzh/第五批-测试集/第五批测试集/原始图片'              #验证集的图片文件夹
-    recog_path = '/home/wzh/第五批-测试集/第五批测试集识别图-result'           #验证集的识别标注文件夹
+    save_path = os.environ['HOME']+'/第五批-测试集/第五批测试集-检验'               #保存的地址
+    xml_path = os.environ['HOME']+'/第五批-测试集/第五批测试集/生成的xml文件'          #验证集检测标注的文件夹
+    img_path = os.environ['HOME']+'/第五批-测试集/第五批测试集/原始图片'              #验证集的图片文件夹
+    recog_path = os.environ['HOME']+'/第五批-测试集/第五批测试集识别图-result'           #验证集的识别标注文件夹
     recognition_xml = 'xml'                                             #验证集识别xml文件夹的名称
 
 

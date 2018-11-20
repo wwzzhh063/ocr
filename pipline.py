@@ -6,10 +6,11 @@ from config import Config as config
 import cv2
 
 from PIL import Image,ImageDraw,ImageFont
-# sys.path.append('Arithmetic_Func_detection_for_CTPN_v2_5')
-# from Arithmetic_Func_detection_for_CTPN_v2_5.ctpn import run
-sys.path.append('Arithmetic_Func_detection_for_CTPN_v3')
-from Arithmetic_Func_detection_for_CTPN_v3.ctpn import run
+sys.path.append('Arithmetic_Func_detection_for_CTPN_v2_5')
+
+from Arithmetic_Func_detection_for_CTPN_v2_5.ctpn import run
+# sys.path.append('Arithmetic_Func_detection_for_CTPN_v3')
+# from Arithmetic_Func_detection_for_CTPN_v3.ctpn import run
 
 import math
 import argparse
@@ -140,16 +141,21 @@ class All_Result(object):
 
         self.all_after_row_connect = self.print_word+self.hand_word
 
+
+
     def create_input(self):
         imgs = []
         wides = []
 
-        for i,result in enumerate(self.all_after_row_connect):
+        def add_img(result):
             if result.img_wide>self.max_wide:
                 self.max_wide = result.img_wide
             wides.append(result.img_wide)
             imgs.append(result.normal_img)
-            self.results.append(result)
+
+
+        for i,result in enumerate(self.all_after_row_connect):
+            add_img(result)
 
         inputs,wides = utils.create_input(imgs,self.max_wide,wides)
 
@@ -293,53 +299,6 @@ class All_Result(object):
                             break
                         elif column_iou(top.bbox,bottom.bbox,'max') >0.5:
                             top.type = 'fraction'
-
-
-
-
-
-
-class Evaluate_Data(object):
-    def __init__(self):
-        self.equation_all = 0
-        self.equation_right = 0
-        self.bracket_all = 0
-        self.bracket_right = 0
-        self.residual_all = 0
-        self.residual_right = 0
-        self.state_all = 0
-        self.state_right = 0
-        self.char_acc = 0
-        self.recall = 0
-        self.error = []
-        self.not_recall = []
-
-
-    def compute(self):
-        self.all = self.residual_all+self.bracket_all+self.equation_all
-        self.right = self.residual_right+self.bracket_right+self.equation_right
-        self.all_recall = self.right/self.all
-        self.state_recall = self.state_right/self.state_all
-
-
-        if self.equation_all == 0:
-            self.equation_recall = 1
-        else:
-            self.equation_recall = self.equation_right/self.equation_all
-        if self.bracket_all == 0:
-            self.bracket_recall = 1
-        else:
-            self.bracket_recall = self.bracket_right/self.bracket_all
-        if self.residual_all == 0:
-            self.residual_recall = 1
-        else:
-            self.residual_recall = self.residual_right/self.residual_all
-
-        self.char_acc = self.char_acc/self.all
-
-
-        self.evaluate_dict = {'all':self.all_recall,'=':self.equation_recall,'()':self.bracket_recall,'...':self.residual_recall,'state':self.state_recall,'char_acc':
-                              self.char_acc,'recall':self.recall}
 
 
 
@@ -595,8 +554,7 @@ def add_bracket(label):                         #加到修改错误项的前面
 
 
 def revise_result(result):
-    # if result == '6×5=30':
-    #     print('a')
+
     # state, revise_output, output = delete_top_or_bottom(result)
     state = eval_label(result)   #-------------
     # revise_output = result
@@ -925,109 +883,6 @@ def pair_check(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_train
 
 
 
-def evaluate(save_path,xml_path, img_path,recog_path,recognition_xml):
-
-
-    all_img = set_xml_data(xml_path, img_path,recog_path,recognition_xml)
-
-    sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training, logits, sequence_length, decodes_greedy = create_sess()
-
-    evaluate_data = Evaluate_Data()
-
-    for i,img_result in tqdm(enumerate(all_img)):
-        img_result.row_connect()
-        img = img_result.img
-
-        result, bboxes, types = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width,
-                                             is_training, logits, sequence_length, decodes_greedy)
-
-        result_pair = get_pair(img_result,result)
-
-
-
-
-
-
-
-        x_pro = 3024 / img.shape[1]
-        y_pro = 4031 / img.shape[0]
-        img = cv2.resize(img, (3024, 4032))
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img2 = img.copy()
-
-
-
-
-
-        for pre_num in result_pair:
-            pre_box = result.connect_result[pre_num]
-            true_box = img_result.all_box[result_pair[pre_num]]
-
-            if true_box.classes == '=':
-                if true_box.label == pre_box.output:
-                    evaluate_data.equation_right = evaluate_data.equation_right+1
-                evaluate_data.equation_all = evaluate_data.equation_all+1
-
-            elif true_box.classes == '()':
-                if true_box.label == pre_box.output:
-                    evaluate_data.bracket_right = evaluate_data.bracket_right+1
-                evaluate_data.bracket_all = evaluate_data.bracket_all+1
-            else:
-
-                if true_box.label == pre_box.output:
-                    evaluate_data.residual_right = evaluate_data.residual_right+1
-                evaluate_data.residual_all = evaluate_data.residual_all+1
-
-            if true_box.state == pre_box.state:
-                evaluate_data.state_right = evaluate_data.state_right+1
-            evaluate_data.state_all = evaluate_data.state_all+1
-
-            # for char in set(true_box.label):
-            #     evaluate_data.char_all[char] = evaluate_data.char_all[char]+1
-            #
-            # for char in set(true_box.label).intersection(pre_box.output):
-            #     evaluate_data.char_right[char] = evaluate_data.char_right[char]+1
-
-
-            if true_box.state == pre_box.state and true_box.label!= pre_box.output:
-                draw_bbox(true_box.bbox, img, x_pro, y_pro, (255, 255, 255))
-                print(pre_box.output)
-            else:
-                draw_bbox(true_box.bbox, img, x_pro, y_pro, (0, 255, 255))
-
-
-
-            evaluate_data.char_acc = evaluate_data.char_acc+1-(Levenshtein.distance(true_box.label,pre_box.output)/len(true_box.label))
-
-
-            # draw_bbox(pre_box.bbox,img,x_pro, y_pro,(255,0,0))
-            # draw_bbox(true_box.bbox,img,x_pro, y_pro,(0,0,255))
-        lenght = 0
-        if len(img_result.all_box)>0:
-            evaluate_data.recall = evaluate_data.recall + (len(result_pair) / len(img_result.all_box))
-            lenght = lenght+1
-
-
-
-
-        draw_bboxes(img, result.connect_result, x_pro, y_pro)
-        img = draw_result(img, result.connect_result, x_pro, y_pro)
-        img.save('result/pipeline'+str(i)+'_.jpg')
-
-        # cv2.imwrite('/home/wzh/test2/'+str(i)+'_.jpg',img)
-
-    evaluate_data.recall = evaluate_data.recall / lenght
-
-    evaluate_data.compute()
-    print(evaluate_data.evaluate_dict)
-    print(evaluate_data.char_recall)
-
-    log = open('log.txt','a')
-    log.writelines(str(evaluate_data.evaluate_dict))
-    log.writelines(str(evaluate_data.char_recall))
-
-        # img.save('/home/wzh/test2/'+str(i)+'_.jpg')
-
 def no_chinese(check_str):
     for ch in check_str:
         if u'\u4e00' <= ch <= u'\u9fff':
@@ -1105,8 +960,7 @@ def run_single_img():
 
 
 if __name__ == '__main__':
-    # run_single_img()
-    evaluate('/home/wzh/第一批/val的验证','/home/wzh/第一批/img_val_xml','/home/wzh/第一批/img_val','/home/wzh/第一批/suanshi_val','outputs')
+    run_single_img()
 
     # result_test('/home/wzh/竖式，脱式/img','/home/wzh/pipline_result/shushi4')
     #

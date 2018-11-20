@@ -97,6 +97,8 @@ def create_dataet():
     # onthot = open('./onehot.txt','w')
     # onthot.write(str(list))
     # print(list)
+
+
 if __name__ == '__main__':
 
     create_dataet()
