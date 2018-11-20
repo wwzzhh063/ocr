@@ -67,7 +67,7 @@ def img_normal(img,img_path):
 
     canny = cv2.Canny(img,25,50,apertureSize=3)
 
-    canny = cv2.blur(canny, (3, 3))
+    # canny = cv2.blur(canny, (3, 3))
 
     gradX = cv2.Sobel(img, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=3)              #水平方向sobel算子
     gradY = cv2.Sobel(img, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=3)              #垂直方向sobel算子
@@ -166,19 +166,63 @@ def dection_circles(img_h,img_o):
 
     return img_o
 
+def draw_lines(lines,img):
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 1, lineType=cv2.LINE_AA)
 
 
-path = '/home/wzh/ocr/lADPDgQ9qVqmuZLNAWPNAkM_579_355.jpg'
+def draw_lines2(lines,img):
+    for line in lines:
+        rho, theta = line[0]
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        x1 = int(x0 + 1000 * (-b))
+        y1 = int(y0 + 1000 * (a))
+        x2 = int(x0 - 1000 * (-b))
+        y2 = int(y0 - 1000 * (a))
+
+        cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255))
+
+
+
+path = 'lADPDgQ9qWTH5RXNC7jND6A_4000_3000.jpg'
 img = cv2.imread(path)
 img1, img2 = img_normal(img.copy(), path)
-img_1o = dection_circles(img1,img.copy())
-img_2o = dection_circles(img2,img.copy())
+
+
+# cv2.imwrite(path.replace('.', '_1.'), img1)
+# cv2.imwrite(path.replace('.', '_3.'), img2)
+
+img1 = np.asarray(img1,np.uint8)
+img2 = np.asarray(img2,np.uint8)
+
+# lines1 = cv2.HoughLinesP(img1, 0.8, np.pi / 180, 90,
+#                         minLineLength=50, maxLineGap=10)
+#
+# lines2 = cv2.HoughLinesP(img2, 0.8, np.pi / 180, 90,
+#                         minLineLength=50, maxLineGap=10)
+
+
+lines1 = cv2.HoughLines(img1, 0.8, np.pi / 180, 500)
+
+lines2 = cv2.HoughLines(img1, 0.8, np.pi / 180, 500)
+
+img1 = img.copy()
+img2 = img.copy()
+draw_lines2(lines1,img1)
+draw_lines2(lines2,img2)
+
 
 cv2.imwrite(path.replace('.', '_1.'), img1)
 cv2.imwrite(path.replace('.', '_3.'), img2)
 
-cv2.imwrite(path.replace('.', '_2.'), img_1o)
-cv2.imwrite(path.replace('.', '_4.'), img_2o)
+# img_1o = dection_circles(img1,img.copy())
+# img_2o = dection_circles(img2,img.copy())
+# cv2.imwrite(path.replace('.', '_2.'), img_1o)
+# cv2.imwrite(path.replace('.', '_4.'), img_2o)
 
 
 # img3, img4 = preprocess(img.copy(), img1, img2)

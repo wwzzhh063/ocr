@@ -20,7 +20,7 @@ import os
 import re
 from inference import set_xml_data
 import Levenshtein
-from layout_utils import row_get_pair,column_get_pair
+from layout_utils import row_get_pair,column_get_pair,column_iou
 from utils import draw_pair,eval_label,draw_bboxes,draw_result
 from math import log
 import numpy as np
@@ -172,6 +172,11 @@ class All_Result(object):
             right = max(print_cell.right, hand.right)
 
             big_img = Result([left, top, right, bottom],self.img,type='merge')
+
+            big_img.equation_before_merge.append(print_cell)
+            big_img.equation_before_merge.append(hand)
+
+
             merge.append(big_img)
 
         return box_list1_,box_list2_,merge
@@ -277,6 +282,23 @@ class All_Result(object):
 
 
 
+    def judge_fraction(self):
+        for forest in self.forest_list:
+            for top in forest:
+                if top.type == 'merge' or top.type == 'print':
+                    num = 0                         #两个打印之间有几个手写框
+                    for i in range(top.position[1]+1,len(forest)):
+                        bottom = forest[i]
+                        if bottom.type == 'merge' or bottom.type == 'print':
+                            break
+                        elif column_iou(top.bbox,bottom.bbox,'max') >0.5:
+                            top.type = 'fraction'
+
+
+
+
+
+
 class Evaluate_Data(object):
     def __init__(self):
         self.equation_all = 0
@@ -289,6 +311,8 @@ class Evaluate_Data(object):
         self.state_right = 0
         self.char_acc = 0
         self.recall = 0
+        self.error = []
+        self.not_recall = []
 
 
     def compute(self):
@@ -677,6 +701,7 @@ def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_trainin
         all_result.row_connect()
         all_result.column_connect()
         all_result.graph_to_forest()
+        all_result.judge_fraction()
         image,wides = all_result.create_input()
         te = time.time()
         layout_time = te-tb
@@ -686,6 +711,7 @@ def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_trainin
         all_result = All_Result(bboxes, img, types)
         all_result.column_connect()
         all_result.graph_to_forest()
+        # all_result.judge_fraction()
         image, wides = all_result.create_input()
         te = time.time()
         layout_time = te - tb
@@ -764,6 +790,10 @@ def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_trainin
                 all_result.other_result.append(result)
 
 
+        else:
+            all_result.other_result.append(result)
+
+
 
 
     for result in all_result.vertical:
@@ -772,7 +802,7 @@ def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_trainin
         bottom_list = []
         position = result.position
         forest = all_result.forest_list[position[0]]
-        for num in range(0, len(forest)):
+        for num in range(max(position[1]-2,0), len(forest)):
             bottom = forest[num]
             if bottom.type == 'print' or bottom.type == 'merge':
                 #break
@@ -812,10 +842,10 @@ def pipeline(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_trainin
 
 
 
-    print('检测时间:{}'.format(detect_time))
-    print('版面分析:{}'.format(layout_time))
-    print('识别时间:{}'.format(recognition_time))
-    print('后处理时间{}'.format(after_processing_time))
+    # print('检测时间:{}'.format(detect_time))
+    # print('版面分析:{}'.format(layout_time))
+    # print('识别时间:{}'.format(recognition_time))
+    # print('后处理时间{}'.format(after_processing_time))
 
 
 
@@ -895,35 +925,26 @@ def pair_check(img,sess1,sess2,net, run_list,dense_decoder,inputs,width,is_train
 
 
 
-def evaluate():
+def evaluate(save_path,xml_path, img_path,recog_path,recognition_xml):
 
-    xml_path = '/home/wzh/data3/xml'
-    all_img = set_xml_data(xml_path,'/home/wzh/第一批/img_val')
+
+    all_img = set_xml_data(xml_path, img_path,recog_path,recognition_xml)
 
     sess1, sess2, net, run_list, dense_decoder, inputs, width, is_training, logits, sequence_length, decodes_greedy = create_sess()
 
     evaluate_data = Evaluate_Data()
 
     for i,img_result in tqdm(enumerate(all_img)):
-        img_result.create_pair()
+        img_result.row_connect()
         img = img_result.img
 
         result, bboxes, types = pipeline(img.copy(), sess1, sess2, net, run_list, dense_decoder, inputs, width,
                                              is_training, logits, sequence_length, decodes_greedy)
 
-        result_pair = {}
+        result_pair = get_pair(img_result,result)
 
-        for i,pre_box in enumerate(result.connect_result):
-            max_iou = 0
-            pair = -1
-            for j,true_box in enumerate(img_result.all_box):
-                iou = get_iou(pre_box.bbox,true_box.bbox)
-                if iou>max_iou:
-                    max_iou = iou
-                    pair = j
 
-            if max_iou>0.3:
-                result_pair[i] = pair
+
 
 
 
@@ -942,17 +963,17 @@ def evaluate():
             pre_box = result.connect_result[pre_num]
             true_box = img_result.all_box[result_pair[pre_num]]
 
-            if true_box.type == '=':
+            if true_box.classes == '=':
                 if true_box.label == pre_box.output:
                     evaluate_data.equation_right = evaluate_data.equation_right+1
-                else:
-                    print('a')
                 evaluate_data.equation_all = evaluate_data.equation_all+1
-            elif true_box.type == '()':
+
+            elif true_box.classes == '()':
                 if true_box.label == pre_box.output:
                     evaluate_data.bracket_right = evaluate_data.bracket_right+1
                 evaluate_data.bracket_all = evaluate_data.bracket_all+1
             else:
+
                 if true_box.label == pre_box.output:
                     evaluate_data.residual_right = evaluate_data.residual_right+1
                 evaluate_data.residual_all = evaluate_data.residual_all+1
@@ -1036,7 +1057,7 @@ def result_test(all_img_path,save_path,model='pipline'):
             img = draw_result(img, all_result.connect_result+all_result.other_result, x_pro, y_pro)
 
             for i,box in enumerate(bboxes):
-                if types[i] == 1:
+                if types[i] == 'print':
                     color = (0,255,0)
                 else:
                     color = (0,0,255)
@@ -1084,8 +1105,8 @@ def run_single_img():
 
 
 if __name__ == '__main__':
-    run_single_img()
-    # evaluate()
+    # run_single_img()
+    evaluate('/home/wzh/第一批/val的验证','/home/wzh/第一批/img_val_xml','/home/wzh/第一批/img_val','/home/wzh/第一批/suanshi_val','outputs')
 
     # result_test('/home/wzh/竖式，脱式/img','/home/wzh/pipline_result/shushi4')
     #

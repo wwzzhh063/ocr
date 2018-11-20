@@ -19,6 +19,20 @@ ont_hot = config.ONE_HOT
 
 not_in = []
 
+def area(point1,point2):
+    return max((point2[0]-point1[0]),0)*max((point2[1]-point1[1]),0)
+
+def get_iou(box1,box2):
+    area1 = area((box1[0],box1[1]),(box1[2],box1[3]))
+    area2 = area((box2[0],box2[1]),(box2[2],box2[3]))
+
+    point1 = (max(box1[0],box2[0]),max(box1[1],box2[1]))
+    point2 = (min(box1[2],box2[2]),min(box1[3],box2[3]))
+
+    area3 = area(point1,point2)
+
+    return area3/(area1+area2-area3)
+
 def image_size_normal(img):
     '''
     将图片统一resize成4k,并返回其缩放比例
@@ -105,6 +119,11 @@ def eval_label(label):
 
 def draw_bboxes(img,all_result,x_pro,y_pro,display_all = True):
     for result in all_result:
+        if result.type == 'fraction':
+            rgb = (0, 255, 255)
+            cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
+                          (int(result.right * x_pro), int(result.bottom * y_pro)), rgb, 4)
+            continue
         if result.state == 'right':
             rgb = (0,255,0)
             cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
@@ -121,6 +140,8 @@ def draw_bboxes(img,all_result,x_pro,y_pro,display_all = True):
                 cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
                               (int(result.right * x_pro), int(result.bottom * y_pro)), rgb, 4)
 
+
+
         else:
             rgb = (0, 0, 0)
             if result.type == 'print':
@@ -131,6 +152,7 @@ def draw_bboxes(img,all_result,x_pro,y_pro,display_all = True):
                 rgb = (0, 0, 255)
             cv2.rectangle(img, (int(result.left * x_pro), int(result.top * y_pro)),
                           (int(result.right * x_pro), int(result.bottom * y_pro)), rgb, 4)
+
 
 
 

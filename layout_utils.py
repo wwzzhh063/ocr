@@ -89,6 +89,7 @@ def in_same_line(print_bbox,hand_bbox):
 
 
 
+
 def row_iou(row1,row2):
     max_top = max(row1[1],row2[1])
     min_bottom = min(row1[3],row2[3])
@@ -98,17 +99,19 @@ def row_iou(row1,row2):
     else:
         return (min_bottom-max_top)/min(row1[3]-row1[1],row2[3]-row2[1])
 
-def column_iou(column1,column2):
+def column_iou(column1,column2,type = 'min'):
     max_left = max(column1[0],column2[0])
     min_right = min(column1[2],column2[2])
 
     if max_left>=min_right:
         return 0
-    else:
-        try:
+    else:               #分为与大的算iou,小的算iou,普通的iou算法
+        if type =='min':
             return (min_right-max_left)/min(column1[2]-column1[0],column2[2]-column2[0])
-        except:
-            print('a')
+        elif type == 'max':
+            return (min_right-max_left)/max(column1[2]-column1[0],column2[2]-column2[0])
+        else:
+            pass
 
 
 
@@ -159,11 +162,13 @@ def row_get_pair(print_cell_word_all,hand_word_all,min_value = 3.5):
         '''
         same_line = in_same_line(box1.bbox,box2.bbox)=='in'         #在同一行
 
-        pair_distance = abs(box2.left - box1.right) < (box1.right - box1.left)/ min_value
+        pair_distance1 = box2.left - box1.right < (box1.right - box1.left)/ min_value
+
+        pair_distance2 = abs(box2.left - box1.right) < (box1.right - box1.left)
 
         c_iou = column_iou(box1.bbox,box2.bbox)<0.9              #过滤草稿,对应conflunece上免的badcase1
 
-        return same_line and pair_distance and c_iou
+        return same_line and pair_distance1 and pair_distance1 and c_iou
 
 
     print_cell_hand = {}
@@ -272,6 +277,8 @@ def column_get_pair(boxes):
                     pair = j
 
         box_top_to_bottom[i] = pair
+
+
 
         if box_bottom_to_top.get(pair):
             box_bottom_to_top[pair].append(i)

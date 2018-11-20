@@ -46,7 +46,7 @@ class Bbox(object):
 
 
 class Img_ALL_BBox(object):
-    def __init__(self,img):
+    def __init__(self,img,name):
         self.print_word = []
         self.hand_word = []
         self.merge = []
@@ -58,6 +58,8 @@ class Img_ALL_BBox(object):
         self.problem_box = []
         self.problem_label = []
         self.error_label = []
+        self.right_label = []
+        self.name = name
 
     def create_big_img(self,pair,box_list1,box_list2):        #先合并非括号填词
 
@@ -163,9 +165,16 @@ class Img_ALL_BBox(object):
                 bbox.state = state
                 self.error_label.append(bbox)
 
+
+            else:
+                bbox.state = state
+                self.right_label.append(bbox)
+
         for bbox in self.print_after_row_connect:
             if no_chinese(bbox.label) and bbox.type == 'print':
                 self.problem_label.append(bbox)
+
+        self.all_box = self.error_label+self.right_label
 
 
 
@@ -282,7 +291,7 @@ def set_xml_data(dection_xml,dection_img,recog_path,recognition_xml='outputs'):
         p = ParseXml(all_dection_xml_path)
         img_name_, class_list, bbox_list,jpg_or_JPG = p.get_bbox_class()
         big_img_path = os.path.join(dection_img,all_dection_xml_path.split('/')[-1].replace('xml',jpg_or_JPG))
-        all_bbox_img = Img_ALL_BBox(cv2.imread(big_img_path))           #一张图片中的所有box   tetst---------------------------------
+        all_bbox_img = Img_ALL_BBox(cv2.imread(big_img_path),img_name_)           #一张图片中的所有box   tetst---------------------------------
         all_bbox_img.img_path = big_img_path
         dection_img_name.append(img_name_)
         j,path = find_labels(img_name_,j,recog_path)                 #找到对应的切分图片的地址
@@ -314,7 +323,7 @@ def set_xml_data(dection_xml,dection_img,recog_path,recognition_xml='outputs'):
     return dection_all_img_label
 
 
-def output_check_result(save_path,img_xml_path,img_path,recog_path,recognition_xml):
+def output_check_result(save_path,xml_path,img_path,recog_path,recognition_xml):
     '''
     将含有问题算式的图片输出出来
     1.标注错误
@@ -323,7 +332,7 @@ def output_check_result(save_path,img_xml_path,img_path,recog_path,recognition_x
     :return:
     '''
 
-    xml_path = img_xml_path
+
     all_img = set_xml_data(xml_path, img_path,recog_path,recognition_xml)
 
 
@@ -504,130 +513,20 @@ def create_dataset(xml_path):
 
 if __name__ == '__main__':
 
-    output_check_result('/home/wzh/第一批/val的验证','/home/wzh/第一批/img_val_xml','/home/wzh/第一批/img_val','/home/wzh/第一批/suanshi_val','outputs')
+    save_path = '/home/wzh/第五批-测试集/第五批测试集-检验'               #保存的地址
+    xml_path = '/home/wzh/第五批-测试集/第五批测试集/生成的xml文件'          #验证集检测标注的文件夹
+    img_path = '/home/wzh/第五批-测试集/第五批测试集/原始图片'              #验证集的图片文件夹
+    recog_path = '/home/wzh/第五批-测试集/第五批测试集识别图-result'           #验证集的识别标注文件夹
+    recognition_xml = 'xml'                                             #验证集识别xml文件夹的名称
+
+
+
+    output_check_result(save_path,xml_path,img_path,recog_path,recognition_xml)
+
+    # output_check_result('/home/wzh/第一批/val的验证','/home/wzh/第一批/img_val_xml','/home/wzh/第一批/img_val','/home/wzh/第一批/suanshi_val','outputs')
     # output_check_result('output_check_result2','/home/wzh/第一批/img_train_xml','/home/wzh/第一批/img_train','/home/wzh/第一批/suanshi_train','outputs')
 
-    # output_check_result('/home/wzh/第五批-测试集/第五批测试集-标注检验', '/home/wzh/第五批-测试集/第五批测试集/生成的xml文件', '/home/wzh/第五批-测试集/第五批测试集/原始图片',
-    #                     '/home/wzh/第五批-测试集/第五批测试集识别图-result', 'xml')
-
-    # output_check_result('/home/wzh/第五批-测试集/test/result', '/home/wzh/第五批-测试集/test/xml', '/home/wzh/第五批-测试集/test/img',
-    #                     '/home/wzh/第五批-测试集/test/shibie', 'xml')
-
-
-    # xml_path = config.DATA_XML
-    # all_img = set_xml_data(xml_path)
-    #
-    #
-    # for i,img_result in tqdm(enumerate(all_img)):
-    #     print_hand = row_get_pair_by_distance(img_result.hand_word,img_result.print_word)
-    #     img_result.pair = print_hand
-    #     img = cv2.imread(img_result.img_path)
-    #     resize_list = []
-    #
-    #     if img.shape[0]>3900:
-    #         resize_list.append((1920/img.shape[0],1080/img.shape[1]))
-    #         resize_list.append((854/img.shape[0],640/img.shape[0]))
-    #     elif img.shape[0]>1800:
-    #         resize_list.append((854/img.shape[0],640/img.shape[0]))
-    #
-    #
-    #
-    #
-    #
-    #     for pair in print_hand:
-    #         bbox_print = img_result.print_word[pair]
-    #         bbox_hand = img_result.hand_word[print_hand[pair]]
-    #
-    #         cv2.line(img, get_box_centre(bbox_print.bbox), get_box_centre(bbox_hand.bbox), (0, 0, 0), 2)
-    #
-    #     cv2.imshow('a',img)
-    #     cv2.waitKey()
-
-            # cv2.line(img, get_right(bbox_print.bbox), get_left(bbox_hand.bbox), (0, 0, 0), 2)
 
 
 
-        # for print in img_result.print_word:
-        #     draw_bbox(print.bbox, img, (0, 0, 255))
-        #
-        # for hand in img_result.hand_word:
-        #     draw_bbox(hand.bbox, img,(255, 0, 0))
-
-
-        # img_result.create_pair()
-        #
-        # save_path = config.CLEAN_DATA
-        # for bbox in img_result.all_box:
-        #     cut_img_list = []
-        #     cut_img = img[bbox.top:bbox.bottom+1,bbox.left:bbox.right+1]
-        #     cut_img_list.append(cut_img)
-        #     row_temp = bbox.right-bbox.left
-        #     column_temp = bbox.bottom-bbox.top
-        #     label = bbox.label
-        #     if len(label)>10:
-        #         cut_img_list.append(img[bbox.top - int(column_temp / 7):bbox.bottom + 1 + int(column_temp / 7),
-        #                             bbox.left - int(row_temp / 5):bbox.right + 1 + int(row_temp / 5)])
-        #     else:
-        #         cut_img_list.append(img[bbox.top - int(column_temp / 7):bbox.bottom + 1 + int(column_temp / 7),
-        #                             bbox.left - int(row_temp / 5):bbox.right + 1 + int(row_temp / 5)])
-        #         cut_img_list.append(img[bbox.top - int(column_temp / 7):bbox.bottom + 1 + int(column_temp / 7),
-        #                             bbox.left - int(row_temp / 3):bbox.right + 1 + int(row_temp / 3)])
-        #     if config.ENHANCE:
-        #         for x,cut_img in enumerate(cut_img_list):
-        #             if len(resize_list) > 0:
-        #                 cut_path = os.path.join(save_path,  '1_'+str(i) +'_'+ str(x)+'_' + '0' + '_' + label + '.jpg')
-        #                 cv2.imwrite(cut_path, cut_img)
-        #                 for j, resize in enumerate(resize_list):
-        #                     try:
-        #                         resize_img = cv2.resize(cut_img, None, fx=resize[1], fy=resize[0])
-        #                         cut_path = os.path.join(save_path,  '1_'+str(i)+'_'+str(x) + '_' + str(j + 1) + '_' + label + '.jpg')
-        #                         cv2.imwrite(cut_path, resize_img)
-        #                     except:
-        #                         pass
-        #
-        #             else:
-        #                 cut_path = os.path.join(save_path, '1_'+ str(i) + '_'+str(x)+'_' + label + '.jpg')
-        #                 cv2.imwrite(cut_path, cut_img)
-        #     else:
-        #         if len(resize_list)>0:
-        #             cut_path = os.path.join(save_path,  '1_'+str(i) + '_' + '0' + '_' + label + '.jpg')
-        #             cv2.imwrite(cut_path, cut_img)
-        #             for j,resize in enumerate(resize_list):
-        #                 resize_img = cv2.resize(cut_img,None,fx=resize[1],fy=resize[0])
-        #                 cut_path = os.path.join(save_path, '1_'+str(i)+'_'+str(j+1)+'_'+label+'.jpg')
-        #                 cv2.imwrite(cut_path,resize_img)
-        #
-        #         else:
-        #             cut_path = os.path.join(save_path,  '1_'+str(i) + '_' + label + '.jpg')
-        #             cv2.imwrite(cut_path, cut_img)
-
-
-
-        #验证------------------------------------------------------------------------------------------------------------
-        # img2 = cv2.imread(img_result.img_path)
-        # path = img_result.img_path.replace('data/img', 'pair/version3')
-        # path2 = img_result.img_path.replace('data/img', 'pair/version4')
-        # for bbox in img_result.all_box:
-        #     draw_bbox(bbox.bbox,img,(0, 0, 255))
-        #
-        #
-        # for bbox in img_result.print_word:
-        #     draw_bbox(bbox.bbox,img2,(255, 0, 0))
-        #     cv2.putText(img2,bbox.label,(bbox.bbox[0],bbox.bbox[1]),cv2.FONT_HERSHEY_COMPLEX,1,(0,0,255),1)
-        #
-        #
-        # for bbox in img_result.hand_word:
-        #     draw_bbox(bbox.bbox, img2, (0, 255, 0))
-        #     cv2.putText(img2, bbox.label, (bbox.bbox[0], bbox.bbox[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0,0 ), 1)
-        #
-        # for bbox in img_result.problem_box:
-        #     draw_bbox(bbox.bbox, img2, (0, 0, 255))
-        #     cv2.putText(img2, bbox.label, (bbox.bbox[0], bbox.bbox[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 1)
-
-        # for print in img_result.not_pair:
-        #     draw_bbox(print.bbox, img, (255, 0, 0))
-
-
-        # cv2.imwrite(path,img)
-        # cv2.imwrite(path2, img2)
 
